@@ -258,7 +258,7 @@
 
         const pList = document.getElementById('provider-stats');
         pList.innerHTML = '';
-        const colors = { "Edem.TV":"bg-edem", "Yosso.TV":"bg-yosso", "Uspeh.TV":"bg-uspeh", "Team.TV":"bg-teamtv", "Alltv.club":"bg-alltv", "Team.club":"bg-teamclub" };
+        const colors = { "Edem.TV":"bg-edem", "Yosso.TV":"bg-yosso", "Uspeh.TV":"bg-uspeh", "Team.TV":"bg-teamtv", "Alltv.club":"bg-alltv", "Team.club":"bg-teamclub"  "Antifriz.tv":"bg-antifriz", };
         for(let p in s.pr) {
             pList.innerHTML += `<div class="col-4 col-md-2"><div class="prov-badge ${colors[p]}"><div>${p}</div><h4>${s.pr[p]}</h4></div></div>`;
         }
