@@ -212,8 +212,37 @@
         const { data, error } = await supabaseClient.from(T_NAME).select('*').order('id', { ascending: false });
         if (!error) { 
             cache = data; 
+            // ЗАПУСК АВТОСБРОСА
+            const changed = await runAutoReset(data);
+            if(changed) { load(); return; } // Если были изменения, перезагружаем кэш
             filterData(); 
         }
+    }
+
+    // НОВАЯ ФУНКЦИЯ АВТОСБРОСА
+    async function runAutoReset(data) {
+        const now = new Date();
+        const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+        
+        // Срабатывает только в последний день месяца
+        if (now.getDate() === lastDay) {
+            let nextMonth = now.getMonth() + 2; 
+            let nextYear = now.getFullYear();
+            if (nextMonth > 12) { nextMonth = 1; nextYear++; }
+            
+            const nextPeriod = `${nextYear}-${String(nextMonth).padStart(2, '0')}`;
+            
+            // Находим клиентов "Продлено", у которых дата уже на следующий месяц
+            const toReset = data.filter(c => c.paymentstatus === 'Продлено' && c.renewdate && c.renewdate.startsWith(nextPeriod));
+            
+            if (toReset.length > 0) {
+                for (let c of toReset) {
+                    await supabaseClient.from(T_NAME).update({ paymentstatus: 'не оплачено' }).eq('id', c.id);
+                }
+                return true; // Флаг, что данные в БД изменились
+            }
+        }
+        return false;
     }
 
     function draw() {
@@ -355,7 +384,7 @@
     }
 
     async function remove(id) { if(confirm('Удалить?')) { await supabaseClient.from(T_NAME).delete().eq('id', id); load(); } }
-    function showMsg(t) { document.getElementById('modalMsg').innerText = t; document.getElementById('modalOverlay').style.display = 'flex'; }
+    function showMsg(t) { document.getElementById('modalMsg').innerText = t || 'Нет комментария'; document.getElementById('modalOverlay').style.display = 'flex'; }
 </script>
 </body>
 </html>
