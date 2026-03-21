@@ -25,6 +25,7 @@
         .bg-edem { background: #6f42c1; } .bg-yosso { background: #007bff; }
         .bg-uspeh { background: #fd7e14; } .bg-teamtv { background: #e83e8c; }
         .bg-alltv { background: #20c997; } .bg-teamclub { background: #17a2b8; }
+        .bg-antifriz { background: #00d4ff; color: #000; } /* Новый цвет для Антифриза */
 
         .form-container { background: #fff; color: #333; border-radius: 20px; padding: 25px; margin-bottom: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         .btn-main { width: 100%; padding: 14px; font-weight: bold; border-radius: 10px; border: none; color: #fff; transition: 0.3s; margin-top: 10px; }
@@ -100,6 +101,7 @@
                         <option value="Team.TV">Team.TV</option>
                         <option value="Alltv.club">Alltv.club</option>
                         <option value="Team.club">Team.club</option>
+                        <option value="Antifriz.tv">Antifriz.tv</option>
                     </select>
                 </div>
                 <div class="col-md-3"><input type="date" id="f_renew" class="form-control"></div>
@@ -220,7 +222,11 @@
         const tbody = document.getElementById('dataGrid');
         tbody.innerHTML = '';
         const pageItems = filteredList.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage);
-        const colors = { "Edem.TV":"bg-edem", "Yosso.TV":"bg-yosso", "Uspeh.TV":"bg-uspeh", "Team.TV":"bg-teamtv", "Alltv.club":"bg-alltv", "Team.club":"bg-teamclub" };
+        const colors = { 
+            "Edem.TV":"bg-edem", "Yosso.TV":"bg-yosso", "Uspeh.TV":"bg-uspeh", 
+            "Team.TV":"bg-teamtv", "Alltv.club":"bg-alltv", "Team.club":"bg-teamclub",
+            "Antifriz.tv":"bg-antifriz" 
+        };
 
         pageItems.forEach(c => {
             tbody.innerHTML += `<tr>
@@ -246,7 +252,10 @@
     }
 
     function updateStats() {
-        let s = { t: cache.length, p: 0, m: 0, pr: { "Edem.TV":0, "Yosso.TV":0, "Uspeh.TV":0, "Team.TV":0, "Alltv.club":0, "Team.club":0 } };
+        let s = { 
+            t: cache.length, p: 0, m: 0, 
+            pr: { "Edem.TV":0, "Yosso.TV":0, "Uspeh.TV":0, "Team.TV":0, "Alltv.club":0, "Team.club":0, "Antifriz.tv":0 } 
+        };
         cache.forEach(c => {
             if(c.paymentstatus === 'Продлено') { s.p++; s.m += parseFloat(c.amount || 0); }
             if(s.pr[c.provider] !== undefined) s.pr[c.provider]++;
@@ -258,7 +267,11 @@
 
         const pList = document.getElementById('provider-stats');
         pList.innerHTML = '';
-        const colors = { "Edem.TV":"bg-edem", "Yosso.TV":"bg-yosso", "Uspeh.TV":"bg-uspeh", "Team.TV":"bg-teamtv", "Alltv.club":"bg-alltv", "Team.club":"bg-teamclub"  "Antifriz.tv":"bg-antifriz", };
+        const colors = { 
+            "Edem.TV":"bg-edem", "Yosso.TV":"bg-yosso", "Uspeh.TV":"bg-uspeh", 
+            "Team.TV":"bg-teamtv", "Alltv.club":"bg-alltv", "Team.club":"bg-teamclub",
+            "Antifriz.tv":"bg-antifriz" 
+        };
         for(let p in s.pr) {
             pList.innerHTML += `<div class="col-4 col-md-2"><div class="prov-badge ${colors[p]}"><div>${p}</div><h4>${s.pr[p]}</h4></div></div>`;
         }
