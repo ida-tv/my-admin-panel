@@ -10,57 +10,46 @@
         :root { --bg-dark: #121921; --card-bg: #1c252e; --primary: #1a66ff; }
         body { background-color: var(--bg-dark); color: white; font-family: 'Segoe UI', sans-serif; padding-bottom: 50px; }
         
-        /* Авторизация */
         #authScreen { position: fixed; top:0; left:0; width:100%; height:100%; background: var(--bg-dark); display: flex; align-items: center; justify-content: center; z-index: 10000; }
         .login-box { background: #fff; color: #333; padding: 30px; border-radius: 20px; width: 90%; max-width: 380px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
         
         #adminContent { display: none; }
 
-        /* Статистика */
         .stat-box { border-radius: 15px; padding: 15px; text-align: center; height: 100%; transition: 0.3s; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
         .bg-total { background: linear-gradient(135deg, #4b6cb7, #182848); }
         .bg-paid { background: linear-gradient(135deg, #11998e, #38ef7d); }
         .bg-debt { background: linear-gradient(135deg, #cb2d3e, #ef473a); }
         .bg-money { background: linear-gradient(135deg, #f2994a, #f2c94c); color: #000 !important; }
 
-        /* Провайдеры */
         .prov-badge { padding: 10px; border-radius: 12px; font-weight: bold; font-size: 11px; margin-bottom: 5px; text-align: center; display: flex; flex-direction: column; justify-content: center; min-height: 65px; }
         .bg-edem { background: #6f42c1; } .bg-yosso { background: #007bff; }
         .bg-uspeh { background: #fd7e14; } .bg-teamtv { background: #e83e8c; }
         .bg-alltv { background: #20c997; } .bg-teamclub { background: #17a2b8; }
 
-        /* Форма */
         .form-container { background: #fff; color: #333; border-radius: 20px; padding: 25px; margin-bottom: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         .btn-main { width: 100%; padding: 14px; font-weight: bold; border-radius: 10px; border: none; color: #fff; transition: 0.3s; margin-top: 10px; }
         .btn-add-mode { background: var(--primary); }
         .btn-edit-mode { background: #28a745; display: none; }
 
-        /* Таблица и Мобильная адаптация */
         @media (max-width: 992px) {
             .table-custom thead { display: none; }
-            .table-custom, .table-custom tbody, .table-custom tr, .table-custom td { display: block; width: 100%; }
-            .table-custom tr { background: var(--card-bg); margin-bottom: 15px; border-radius: 15px; padding: 15px; border: 1px solid #2c3b4a; }
+            .table-custom tr { background: var(--card-bg); margin-bottom: 15px; border-radius: 15px; padding: 15px; border: 1px solid #2c3b4a; display: block; }
             .table-custom td { border: none; padding: 8px 0; display: flex; justify-content: space-between; font-size: 14px; border-bottom: 1px solid #2c3b4a; text-align: right; }
-            .table-custom td:last-child { border: none; margin-top: 10px; justify-content: center; }
-            .table-custom td:before { content: attr(data-label); font-weight: bold; color: #adb5bd; text-align: left; margin-right: 20px; }
+            .table-custom td:before { content: attr(data-label); font-weight: bold; color: #adb5bd; text-align: left; }
         }
 
         @media (min-width: 993px) {
             .table-custom { width: 100%; background: var(--card-bg); border-radius: 15px; overflow: hidden; border-collapse: collapse; }
             .table-custom th { background: #2c3b4a; padding: 12px; color: #adb5bd; font-size: 13px; text-align: left; }
-            .table-custom td { padding: 12px; border-bottom: 1px solid #2c3b4a; font-size: 13px; vertical-align: middle; }
-            .table-custom tr:hover { background: #2a3847; }
+            .table-custom td { padding: 12px; border-bottom: 1px solid #2c3b4a; font-size: 13px; }
         }
 
         .btn-act { background: none; border: none; font-size: 18px; padding: 5px; cursor: pointer; }
         .ico-comm { color: #1a66ff; } .ico-edit { color: #ffc107; } .ico-del { color: #dc3545; }
         
-        /* ПАГИНАЦИЯ */
         .pagination-container { display: flex; justify-content: center; gap: 8px; margin-top: 25px; flex-wrap: wrap; }
         .page-btn { background: #2c3b4a; color: white; border: none; padding: 8px 16px; border-radius: 10px; cursor: pointer; transition: 0.3s; font-weight: bold; }
-        .page-btn:hover { background: var(--primary); }
-        .page-btn.active { background: var(--primary); box-shadow: 0 0 15px rgba(26, 102, 255, 0.4); }
-        .page-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+        .page-btn.active { background: var(--primary); }
 
         #modalOverlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 11000; align-items: center; justify-content: center; }
     </style>
@@ -69,9 +58,9 @@
 
 <div id="authScreen">
     <div class="login-box">
-        <h3 class="mb-4">SetupTV Admin</h3>
-        <input type="password" id="passInput" class="form-control form-control-lg mb-3 text-center" placeholder="Пароль">
-        <button class="btn btn-primary btn-lg w-100" onclick="checkPass()">ВОЙТИ</button>
+        <h3>SetupTV Admin</h3>
+        <input type="password" id="passInput" class="form-control mb-3 text-center" placeholder="Пароль">
+        <button class="btn btn-primary w-100" onclick="checkPass()">ВОЙТИ</button>
         <p id="errorMsg" class="text-danger mt-3 small" style="display:none;">Неверный пароль!</p>
     </div>
 </div>
@@ -136,7 +125,7 @@
         </div>
 
         <div class="row g-2 mb-3">
-            <div class="col-8 col-md-9"><input type="text" id="search" class="form-control bg-dark text-white border-secondary" placeholder="Поиск (Имя, Ник, Тел, Адрес)..."></div>
+            <div class="col-8 col-md-9"><input type="text" id="search" class="form-control bg-dark text-white border-secondary" placeholder="Поиск..."></div>
             <div class="col-4 col-md-3">
                 <select id="month" class="form-select bg-dark text-white border-secondary">
                     <option value="all">Все месяцы</option>
@@ -153,21 +142,20 @@
         <table class="table-custom">
             <thead>
                 <tr>
-                    <th>Ник</th><th>Имя</th><th>Тел.</th><th>Адрес</th><th>Сумма</th><th>Arve</th><th>Пров.</th><th>Дата</th><th>Статус</th><th>Действия</th>
+                    <th>Ник</th><th>Имя</th><th>Тел.</th><th>Адрес</th><th>Сумма</th><th>Arve</th><th>Пров.</th><th>Дата</th><th>Отв.</th><th>Статус</th><th>Действия</th>
                 </tr>
             </thead>
             <tbody id="dataGrid"></tbody>
         </table>
-
         <div class="pagination-container" id="pagination"></div>
     </div>
 </div>
 
 <div id="modalOverlay" onclick="this.style.display='none'">
-    <div class="modal-box bg-white p-4 rounded-4 shadow" onclick="event.stopPropagation()" style="max-width: 90%; width: 400px; text-align: center;">
-        <h5 class="text-primary mb-3">Комментарий</h5>
-        <p id="modalMsg" class="text-dark" style="white-space: pre-wrap;"></p>
-        <button class="btn btn-primary w-100 mt-3" onclick="document.getElementById('modalOverlay').style.display='none'">Закрыть</button>
+    <div class="modal-box bg-white p-4 rounded-4 shadow text-dark" style="max-width: 400px; width: 90%; text-align: center;">
+        <h5>Комментарий</h5>
+        <p id="modalMsg" style="white-space: pre-wrap;"></p>
+        <button class="btn btn-primary w-100 mt-3">Закрыть</button>
     </div>
 </div>
 
@@ -178,25 +166,19 @@
     const T_NAME = 'Ida-tv-Setuptv-Admin';
 
     const supabaseClient = supabase.createClient(S_URL, S_KEY);
-    let cache = [];
-    let filteredList = [];
-    let currentPage = 1;
+    let cache = [], filteredList = [], currentPage = 1;
     const rowsPerPage = 20;
 
-    async function hash(string) {
-        const utf8 = new TextEncoder().encode(string);
+    async function hash(s) {
+        const utf8 = new TextEncoder().encode(s);
         const hashBuffer = await crypto.subtle.digest('SHA-256', utf8);
         return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
     }
 
     async function checkPass() {
-        const input = document.getElementById('passInput').value;
-        const inputHash = await hash(input);
-        if(inputHash === HASH) {
+        if(await hash(document.getElementById('passInput').value) === HASH) {
             sessionStorage.setItem('isAuth', 'true');
-            document.getElementById('authScreen').style.display = 'none';
-            document.getElementById('adminContent').style.display = 'block';
-            load();
+            location.reload();
         } else { document.getElementById('errorMsg').style.display = 'block'; }
     }
 
@@ -212,34 +194,23 @@
         const { data, error } = await supabaseClient.from(T_NAME).select('*').order('id', { ascending: false });
         if (!error) { 
             cache = data; 
-            // ЗАПУСК АВТОСБРОСА
-            const changed = await runAutoReset(data);
-            if(changed) { load(); return; } // Если были изменения, перезагружаем кэш
+            const wasReset = await runAutoReset(data);
+            if(wasReset) { load(); return; }
             filterData(); 
         }
     }
 
-    // НОВАЯ ФУНКЦИЯ АВТОСБРОСА
     async function runAutoReset(data) {
         const now = new Date();
         const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-        
-        // Срабатывает только в последний день месяца
         if (now.getDate() === lastDay) {
-            let nextMonth = now.getMonth() + 2; 
-            let nextYear = now.getFullYear();
-            if (nextMonth > 12) { nextMonth = 1; nextYear++; }
-            
-            const nextPeriod = `${nextYear}-${String(nextMonth).padStart(2, '0')}`;
-            
-            // Находим клиентов "Продлено", у которых дата уже на следующий месяц
+            let nMonth = now.getMonth() + 2; let nYear = now.getFullYear();
+            if (nMonth > 12) { nMonth = 1; nYear++; }
+            const nextPeriod = `${nYear}-${String(nMonth).padStart(2, '0')}`;
             const toReset = data.filter(c => c.paymentstatus === 'Продлено' && c.renewdate && c.renewdate.startsWith(nextPeriod));
-            
             if (toReset.length > 0) {
-                for (let c of toReset) {
-                    await supabaseClient.from(T_NAME).update({ paymentstatus: 'не оплачено' }).eq('id', c.id);
-                }
-                return true; // Флаг, что данные в БД изменились
+                for (let c of toReset) { await supabaseClient.from(T_NAME).update({ paymentstatus: 'не оплачено' }).eq('id', c.id); }
+                return true;
             }
         }
         return false;
@@ -248,11 +219,7 @@
     function draw() {
         const tbody = document.getElementById('dataGrid');
         tbody.innerHTML = '';
-        
-        const start = (currentPage - 1) * rowsPerPage;
-        const end = start + rowsPerPage;
-        const pageItems = filteredList.slice(start, end);
-
+        const pageItems = filteredList.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage);
         const colors = { "Edem.TV":"bg-edem", "Yosso.TV":"bg-yosso", "Uspeh.TV":"bg-uspeh", "Team.TV":"bg-teamtv", "Alltv.club":"bg-alltv", "Team.club":"bg-teamclub" };
 
         pageItems.forEach(c => {
@@ -263,8 +230,9 @@
                 <td data-label="Адрес">${c.address || '-'}</td>
                 <td data-label="Сумма">${c.amount || 0}€</td>
                 <td data-label="Arve">${c.invoice || '-'}</td>
-                <td data-label="Провайдер"><span class="badge ${colors[c.provider]}">${c.provider}</span></td>
+                <td data-label="Пров."><span class="badge ${colors[c.provider]}">${c.provider}</span></td>
                 <td data-label="Дата">${c.renewdate || '-'}</td>
+                <td data-label="Отв.">${c.responsible || 'Общий'}</td>
                 <td data-label="Статус"><span class="badge ${c.paymentstatus === 'Продлено' ? 'bg-success' : 'bg-danger'}">${c.paymentstatus}</span></td>
                 <td>
                     <button class="btn-act ico-comm" onclick="showMsg('${c.comment || ''}')">💬</button>
@@ -299,21 +267,12 @@
     function drawPagination() {
         const pagin = document.getElementById('pagination');
         pagin.innerHTML = '';
-        const totalPages = Math.ceil(filteredList.length / rowsPerPage);
-        if(totalPages <= 1) return;
-
-        pagin.innerHTML += `<button class="page-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="changePage(${currentPage - 1})">«</button>`;
-        for(let i = 1; i <= totalPages; i++) {
-            if(i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
-                pagin.innerHTML += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="changePage(${i})">${i}</button>`;
-            } else if (i === currentPage - 2 || i === currentPage + 2) {
-                pagin.innerHTML += `<span class="px-1">...</span>`;
-            }
+        const total = Math.ceil(filteredList.length / rowsPerPage);
+        if(total <= 1) return;
+        for(let i = 1; i <= total; i++) {
+            pagin.innerHTML += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="currentPage=${i};draw()">${i}</button>`;
         }
-        pagin.innerHTML += `<button class="page-btn" ${currentPage === totalPages ? 'disabled' : ''} onclick="changePage(${currentPage + 1})">»</button>`;
     }
-
-    function changePage(p) { currentPage = p; draw(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
 
     function filterData() {
         const query = document.getElementById('search').value.toLowerCase();
@@ -323,26 +282,28 @@
             const matchesMonth = month === 'all' || (c.renewdate && c.renewdate.split('-')[1] === month);
             return matchesSearch && matchesMonth;
         });
-        currentPage = 1;
-        draw();
+        currentPage = 1; draw();
     }
     document.getElementById('search').oninput = filterData;
     document.getElementById('month').onchange = filterData;
 
     document.getElementById('mainForm').onsubmit = async (e) => {
         e.preventDefault();
-        const data = {
-            name: document.getElementById('f_name').value, phone: document.getElementById('f_phone').value,
-            nickname: document.getElementById('f_nick').value, email: document.getElementById('f_email').value,
-            address: document.getElementById('f_address').value,
-            amount: document.getElementById('f_amount').value, invoice: document.getElementById('f_invoice').value,
-            provider: document.getElementById('f_provider').value, renewdate: document.getElementById('f_renew').value,
-            paymentstatus: document.getElementById('f_status').value, responsible: document.getElementById('f_resp').value,
-            comment: document.getElementById('f_comment').value
-        };
-        await supabaseClient.from(T_NAME).insert([data]);
+        const d = getFormData();
+        await supabaseClient.from(T_NAME).insert([d]);
         document.getElementById('mainForm').reset();
         load();
+    }
+
+    function getFormData() {
+        return {
+            name: document.getElementById('f_name').value, phone: document.getElementById('f_phone').value,
+            nickname: document.getElementById('f_nick').value, email: document.getElementById('f_email').value,
+            address: document.getElementById('f_address').value, amount: document.getElementById('f_amount').value,
+            invoice: document.getElementById('f_invoice').value, provider: document.getElementById('f_provider').value,
+            renewdate: document.getElementById('f_renew').value, paymentstatus: document.getElementById('f_status').value,
+            responsible: document.getElementById('f_resp').value, comment: document.getElementById('f_comment').value
+        };
     }
 
     function startEdit(id) {
@@ -367,16 +328,8 @@
 
     async function saveUpdate() {
         const id = document.getElementById('edit_id').value;
-        const data = {
-            name: document.getElementById('f_name').value, phone: document.getElementById('f_phone').value,
-            nickname: document.getElementById('f_nick').value, email: document.getElementById('f_email').value,
-            address: document.getElementById('f_address').value,
-            amount: document.getElementById('f_amount').value, invoice: document.getElementById('f_invoice').value,
-            provider: document.getElementById('f_provider').value, renewdate: document.getElementById('f_renew').value,
-            paymentstatus: document.getElementById('f_status').value, responsible: document.getElementById('f_resp').value,
-            comment: document.getElementById('f_comment').value
-        };
-        await supabaseClient.from(T_NAME).update(data).eq('id', id);
+        const d = getFormData();
+        await supabaseClient.from(T_NAME).update(d).eq('id', id);
         document.getElementById('mainForm').reset();
         document.getElementById('btn-add').style.display = 'block';
         document.getElementById('btn-save').style.display = 'none';
