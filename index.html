@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ida-tv-Setuptv-Admin</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         :root { --bg-dark: #121921; --card-bg: #1c252e; --primary: #1a66ff; }
@@ -52,7 +55,7 @@
         }
 
         .btn-act { background: none; border: none; font-size: 18px; padding: 5px; cursor: pointer; }
-        .ico-comm { color: #1a66ff; } .ico-edit { color: #ffc107; } .ico-del { color: #dc3545; }
+        .ico-comm { color: #1a66ff; } .ico-edit { color: #ffc107; } .ico-del { color: #dc3545; } .ico-pdf { color: #28a745; }
         
         .pagination-container { display: flex; justify-content: center; gap: 8px; margin-top: 25px; flex-wrap: wrap; }
         .page-btn { background: #2c3b4a; color: white; border: none; padding: 8px 16px; border-radius: 10px; cursor: pointer; transition: 0.3s; font-weight: bold; }
@@ -92,8 +95,9 @@
                 <div class="col-6 col-md-3"><div class="stat-box bg-money"><small>Сумма</small><h4 id="stat-money">0 €</h4></div></div>
             </div>
             <div class="row g-2 text-center mb-4" id="provider-stats"></div>
+            
             <div class="form-container">
-                <h5 class="text-primary mb-3" id="form-title"><strong>+ Добавить клиента</strong></h5>
+                <h5 class="text-primary mb-3"><strong>+ Добавить клиента ТВ</strong></h5>
                 <form id="mainForm" class="row g-2">
                     <input type="hidden" id="edit_id">
                     <div class="col-md-3"><input type="text" id="f_name" class="form-control" placeholder="Имя" required></div>
@@ -135,6 +139,7 @@
                     </div>
                 </form>
             </div>
+
             <div class="row g-2 mb-3">
                 <div class="col-8 col-md-9"><input type="text" id="search" class="form-control bg-dark text-white border-secondary" placeholder="Поиск по ТВ..."></div>
                 <div class="col-4 col-md-3">
@@ -168,7 +173,7 @@
             </div>
             
             <div class="form-container">
-                <h5 class="text-primary mb-3"><strong id="int-form-title">+ Добавить интернет клиента</strong></h5>
+                <h5 class="text-primary mb-3"><strong>+ Добавить интернет клиента</strong></h5>
                 <form id="intForm" class="row g-2">
                     <input type="hidden" id="edit_int_id">
                     <div class="col-md-2"><label class="small text-muted">Дата подкл.</label><input type="date" id="i_start" class="form-control"></div>
@@ -221,10 +226,10 @@
     </div>
 </div>
 
-<div id="modalOverlay" onclick="this.style.display='none'">
-    <div class="modal-box bg-white p-4 rounded-4 shadow text-dark" style="max-width: 400px; width: 90%; text-align: center;">
+<div id="modalOverlay">
+    <div class="modal-box bg-white p-4 rounded-4 shadow text-dark" style="max-width: 400px; width: 90%; text-align: center; position: relative;">
         <h5>Комментарий</h5><p id="modalMsg" style="white-space: pre-wrap;"></p>
-        <button class="btn btn-primary w-100 mt-3">Закрыть</button>
+        <button class="btn btn-primary w-100 mt-3" onclick="document.getElementById('modalOverlay').style.display='none'">Закрыть</button>
     </div>
 </div>
 
@@ -237,8 +242,86 @@
 
     const supabaseClient = supabase.createClient(S_URL, S_KEY);
     let cache = [], filteredList = [], currentPage = 1;
-    let intCache = [], intFiltered = [];
+    let intCache = [], intFilteredList = [];
     const rowsPerPage = 20;
+
+    // --- ФУНКЦИЯ ГЕНЕРАЦИИ СЧЕТА PDF С ПОДДЕРЖКОЙ КИРИЛЛИЦЫ ---
+    async function sendInvoice(id, type) {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+
+        // 1. Загрузка шрифта Roboto (поддерживает русский язык)
+        const fontUrl = "https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.66/fonts/Roboto/Roboto-Regular.ttf";
+        const fontBase64 = await fetch(fontUrl).then(res => res.arrayBuffer()).then(buffer => {
+            let binary = '';
+            let bytes = new Uint8Array(buffer);
+            for (let i = 0; i < bytes.byteLength; i++) binary += String.fromCharCode(bytes[i]);
+            return window.btoa(binary);
+        });
+
+        doc.addFileToVFS("Roboto-Regular.ttf", fontBase64);
+        doc.addFont("Roboto-Regular.ttf", "Roboto", "normal");
+        doc.setFont("Roboto");
+
+        const client = (type === 'tv') ? cache.find(x => x.id === id) : intCache.find(x => x.id === id);
+        
+        const name = client.name || client.i_name || 'Klient';
+        const address = client.address || client.i_address || '-';
+        const amount = (type === 'tv' ? client.amount : client.i_amount) || '0';
+        const invNr = (type === 'tv' ? client.invoice : client.i_card) || `INV-${id}`;
+        const date = new Date().toLocaleDateString('ru-RU');
+        
+        // Шапка синяя
+        doc.setFillColor(30, 41, 59); 
+        doc.rect(0, 0, 210, 35, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(22);
+        doc.text("IDA TV / SETUPTV", 20, 22);
+        doc.setFontSize(10);
+        doc.text("ARVE / СЧЁТ", 170, 22);
+
+        // Инфо
+        doc.setTextColor(0, 0, 0);
+        doc.setFontSize(10);
+        doc.text("Продавец / Müüja:", 20, 50);
+        doc.text("Artjom Fjodorov", 20, 56);
+        doc.text("E-mail: setuptv@mail.ee", 20, 61);
+
+        doc.text("Покупатель / Ostja:", 120, 50);
+        doc.text(name, 120, 56);
+        doc.text(address, 120, 61);
+
+        doc.setDrawColor(200, 200, 200);
+        doc.line(20, 70, 190, 70);
+        doc.text(`Номер счета: ${invNr}`, 20, 80);
+        doc.text(`Дата: ${date}`, 120, 80);
+
+        // Таблица (ВАЖНО: указываем шрифт Roboto)
+        doc.autoTable({
+            startY: 90,
+            head: [['Описание (Kirjeldus)', 'Сумма (Summa)']],
+            body: [[(type === 'tv' ? 'Телевидение / IPTV' : 'Интернет услуги / Internet'), `${amount} €`]],
+            theme: 'grid',
+            headStyles: { fillColor: [51, 65, 85], font: 'Roboto' },
+            styles: { font: 'Roboto' }
+        });
+
+        let finalY = doc.lastAutoTable.finalY + 15;
+        
+        // Блок оплаты LHV
+        doc.setDrawColor(30, 41, 59);
+        doc.setFillColor(248, 250, 252);
+        doc.rect(20, finalY, 170, 45, 'FD'); 
+        
+        doc.setFontSize(10);
+        doc.text("РЕКВИЗИТЫ ДЛЯ ОПЛАТЫ / MAKSEINFO:", 25, finalY + 10);
+        doc.text(`Получатель / Saaja: Artjom Fjodorov`, 25, finalY + 18);
+        doc.text(`Банк / Pank: LHV Pank`, 25, finalY + 25);
+        doc.text(`IBAN: EE55 7700 7710 0977 1245`, 25, finalY + 32);
+        doc.text(`Пояснение / Selgitus: Arve nr ${invNr}`, 25, finalY + 39);
+
+        doc.save(`Arve_${invNr}.pdf`);
+    }
 
     function switchTab(tab) {
         document.getElementById('sectionTv').style.display = tab === 'tv' ? 'block' : 'none';
@@ -297,12 +380,20 @@
                 <td data-label="Пров."><span class="badge ${colors[c.provider]}">${c.provider}</span></td>
                 <td data-label="Дата">${c.renewdate || '-'}</td><td data-label="Отв.">${c.responsible || 'Общий'}</td>
                 <td data-label="Статус"><span class="badge ${c.paymentstatus === 'Продлено' ? 'bg-success' : 'bg-danger'}">${c.paymentstatus}</span></td>
-                <td><button class="btn-act ico-comm" onclick="showMsg('${c.comment || ''}')">💬</button>
+                <td>
+                    <button class="btn-act ico-pdf" title="Скачать счет" onclick="sendInvoice(${c.id}, 'tv')">📄</button>
+                    <button class="btn-act ico-comm" onclick="showMsg('${c.comment || ''}')">💬</button>
                     <button class="btn-act ico-edit" onclick="startEdit(${c.id})">✏️</button>
-                    <button class="btn-act ico-del" onclick="remove(${c.id})">🗑️</button></td>
+                    <button class="btn-act ico-del" onclick="remove(${c.id})">🗑️</button>
+                </td>
             </tr>`;
         });
         updateStats(); drawPagination();
+    }
+
+    function showMsg(txt) {
+        document.getElementById('modalMsg').innerText = txt || 'Нет комментария';
+        document.getElementById('modalOverlay').style.display = 'flex';
     }
 
     function updateStats() {
@@ -325,6 +416,22 @@
         for(let i = 1; i <= total; i++) { pagin.innerHTML += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="currentPage=${i};draw()">${i}</button>`; }
     }
 
+    async function loadInt() {
+        const { data, error } = await supabaseClient.from(T_INT).select('*').order('id', { ascending: false });
+        if(!error) { intCache = data; filterInt(); }
+    }
+
+    function filterInt() {
+        const query = document.getElementById('intSearch').value.toLowerCase();
+        intFilteredList = intCache.filter(c => 
+            (c.i_name || '').toLowerCase().includes(query) || 
+            (c.i_nick || '').toLowerCase().includes(query) || 
+            (c.i_address || '').toLowerCase().includes(query) || 
+            (c.i_phone || '').includes(query)
+        );
+        drawInt();
+    }
+
     function getDiffMonths(startDate) {
         if(!startDate) return 0;
         const start = new Date(startDate);
@@ -332,34 +439,12 @@
         return (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth());
     }
 
-    // --- ИНТЕРНЕТ СЕКЦИЯ ---
-    async function loadInt() {
-        const { data, error } = await supabaseClient.from(T_INT).select('*').order('id', { ascending: false });
-        if(!error) { 
-            intCache = data; 
-            filterInt();
-        }
-    }
-
-    function filterInt() {
-        const q = document.getElementById('intSearch').value.toLowerCase();
-        intFiltered = intCache.filter(c => 
-            (c.i_name||'').toLowerCase().includes(q) || 
-            (c.i_nick||'').toLowerCase().includes(q) || 
-            (c.i_address||'').toLowerCase().includes(q) || 
-            (c.i_phone||'').includes(q)
-        );
-        drawInt();
-    }
-
     function drawInt() {
         const tbody = document.getElementById('intGrid'); tbody.innerHTML = '';
         let s = { p:0, d:0, o:0, den:0, m:0 };
-        
-        intFiltered.forEach(c => {
+        intFilteredList.forEach(c => {
             if(c.i_status === 'Оплачено') { s.p++; s.m += parseFloat(c.i_amount||0); } else s.d++;
             if(c.i_owner === 'Наш') s.o++; else s.den++;
-            
             const months = getDiffMonths(c.i_start);
 
             tbody.innerHTML += `<tr>
@@ -373,6 +458,7 @@
                 <td data-label="Владелец"><span class="badge ${c.i_owner==='Наш'?'bg-our':'bg-denis'}">${c.i_owner}</span></td>
                 <td data-label="Статус"><span class="badge ${c.i_status==='Оплачено'?'bg-success':'bg-danger'}">${c.i_status}</span></td>
                 <td>
+                    <button class="btn-act ico-pdf" title="Скачать счет" onclick="sendInvoice(${c.id}, 'int')">📄</button>
                     <button class="btn-act ico-comm" onclick="showMsg('${c.i_comm||''}')">💬</button>
                     <button class="btn-act ico-edit" onclick="startIntEdit(${c.id})">✏️</button>
                     <button class="btn-act ico-del" onclick="removeInt(${c.id})">🗑️</button>
@@ -384,7 +470,23 @@
         document.getElementById('int-stat-money').innerText = s.m + ' €';
     }
 
+    document.getElementById('search').oninput = filterData;
+    document.getElementById('month').onchange = filterData;
     document.getElementById('intSearch').oninput = filterInt;
+
+    document.getElementById('mainForm').onsubmit = async (e) => {
+        e.preventDefault();
+        const d = { name: document.getElementById('f_name').value, phone: document.getElementById('f_phone').value, nickname: document.getElementById('f_nick').value, email: document.getElementById('f_email').value, address: document.getElementById('f_address').value, amount: document.getElementById('f_amount').value, invoice: document.getElementById('f_invoice').value, provider: document.getElementById('f_provider').value, renewdate: document.getElementById('f_renew').value, paymentstatus: document.getElementById('f_status').value, responsible: document.getElementById('f_resp').value, comment: document.getElementById('f_comment').value };
+        await supabaseClient.from(T_NAME).insert([d]);
+        document.getElementById('mainForm').reset(); load();
+    }
+
+    document.getElementById('intForm').onsubmit = async (e) => {
+        e.preventDefault();
+        const d = getIntFormData();
+        await supabaseClient.from(T_INT).insert([d]);
+        document.getElementById('intForm').reset(); loadInt();
+    }
 
     function getIntFormData() {
         return { 
@@ -399,57 +501,6 @@
         };
     }
 
-    document.getElementById('intForm').onsubmit = async (e) => {
-        e.preventDefault();
-        const d = getIntFormData();
-        await supabaseClient.from(T_INT).insert([d]);
-        document.getElementById('intForm').reset(); loadInt();
-    }
-
-    function startIntEdit(id) {
-        const c = intCache.find(x => x.id === id);
-        document.getElementById('edit_int_id').value = c.id;
-        document.getElementById('i_start').value = c.i_start || '';
-        document.getElementById('i_name').value = c.i_name || '';
-        document.getElementById('i_nick').value = c.i_nick || '';
-        document.getElementById('i_address').value = c.i_address || '';
-        document.getElementById('i_phone').value = c.i_phone || '';
-        document.getElementById('i_sn').value = c.i_sn || '';
-        document.getElementById('i_card').value = c.i_card || '';
-        document.getElementById('i_prov_net').value = c.i_prov_net;
-        document.getElementById('i_prov_tv').value = c.i_prov_tv;
-        document.getElementById('i_pay_date').value = c.i_pay_date || '';
-        document.getElementById('i_pay_till').value = c.i_pay_till || '';
-        document.getElementById('i_status').value = c.i_status;
-        document.getElementById('i_amount').value = c.i_amount || '';
-        document.getElementById('i_owner').value = c.i_owner;
-        document.getElementById('i_comm').value = c.i_comm || '';
-        
-        document.getElementById('btn-int-add').style.display = 'none';
-        document.getElementById('btn-int-save').style.display = 'block';
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    async function saveIntUpdate() {
-        const id = document.getElementById('edit_int_id').value;
-        const d = getIntFormData();
-        await supabaseClient.from(T_INT).update(d).eq('id', id);
-        document.getElementById('intForm').reset();
-        document.getElementById('btn-int-add').style.display = 'block';
-        document.getElementById('btn-int-save').style.display = 'none';
-        loadInt();
-    }
-
-    async function removeInt(id) { if(confirm('Удалить интернет-клиента?')) { await supabaseClient.from(T_INT).delete().eq('id', id); loadInt(); } }
-
-    // --- ТВ ФУНКЦИИ (ОСТАВЛЕНЫ БЕЗ ИЗМЕНЕНИЙ) ---
-    document.getElementById('mainForm').onsubmit = async (e) => {
-        e.preventDefault();
-        const d = { name: document.getElementById('f_name').value, phone: document.getElementById('f_phone').value, nickname: document.getElementById('f_nick').value, email: document.getElementById('f_email').value, address: document.getElementById('f_address').value, amount: document.getElementById('f_amount').value, invoice: document.getElementById('f_invoice').value, provider: document.getElementById('f_provider').value, renewdate: document.getElementById('f_renew').value, paymentstatus: document.getElementById('f_status').value, responsible: document.getElementById('f_resp').value, comment: document.getElementById('f_comment').value };
-        await supabaseClient.from(T_NAME).insert([d]);
-        document.getElementById('mainForm').reset(); load();
-    }
-
     function startEdit(id) {
         const c = cache.find(x => x.id === id);
         document.getElementById('edit_id').value = c.id;
@@ -460,19 +511,40 @@
         document.getElementById('f_renew').value = c.renewdate || ''; document.getElementById('f_status').value = c.paymentstatus;
         document.getElementById('f_resp').value = c.responsible || 'Общий'; document.getElementById('f_comment').value = c.comment || '';
         document.getElementById('btn-add').style.display = 'none'; document.getElementById('btn-save').style.display = 'block';
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        window.scrollTo(0,0);
     }
 
     async function saveUpdate() {
         const id = document.getElementById('edit_id').value;
         const d = { name: document.getElementById('f_name').value, phone: document.getElementById('f_phone').value, nickname: document.getElementById('f_nick').value, email: document.getElementById('f_email').value, address: document.getElementById('f_address').value, amount: document.getElementById('f_amount').value, invoice: document.getElementById('f_invoice').value, provider: document.getElementById('f_provider').value, renewdate: document.getElementById('f_renew').value, paymentstatus: document.getElementById('f_status').value, responsible: document.getElementById('f_resp').value, comment: document.getElementById('f_comment').value };
         await supabaseClient.from(T_NAME).update(d).eq('id', id);
-        document.getElementById('mainForm').reset(); document.getElementById('btn-add').style.display = 'block';
-        document.getElementById('btn-save').style.display = 'none'; load();
+        location.reload();
     }
 
     async function remove(id) { if(confirm('Удалить?')) { await supabaseClient.from(T_NAME).delete().eq('id', id); load(); } }
-    function showMsg(t) { document.getElementById('modalMsg').innerText = t || 'Нет комментария'; document.getElementById('modalOverlay').style.display = 'flex'; }
+
+    function startIntEdit(id) {
+        const c = intCache.find(x => x.id === id);
+        document.getElementById('edit_int_id').value = c.id;
+        document.getElementById('i_start').value = c.i_start; document.getElementById('i_name').value = c.i_name;
+        document.getElementById('i_nick').value = c.i_nick; document.getElementById('i_address').value = c.i_address;
+        document.getElementById('i_phone').value = c.i_phone; document.getElementById('i_sn').value = c.i_sn;
+        document.getElementById('i_card').value = c.i_card; document.getElementById('i_prov_net').value = c.i_prov_net;
+        document.getElementById('i_prov_tv').value = c.i_prov_tv; document.getElementById('i_pay_date').value = c.i_pay_date;
+        document.getElementById('i_pay_till').value = c.i_pay_till; document.getElementById('i_status').value = c.i_status;
+        document.getElementById('i_amount').value = c.i_amount; document.getElementById('i_owner').value = c.i_owner;
+        document.getElementById('i_comm').value = c.i_comm;
+        document.getElementById('btn-int-add').style.display = 'none'; document.getElementById('btn-int-save').style.display = 'block';
+        window.scrollTo(0,0);
+    }
+
+    async function saveIntUpdate() {
+        const id = document.getElementById('edit_int_id').value;
+        await supabaseClient.from(T_INT).update(getIntFormData()).eq('id', id);
+        location.reload();
+    }
+
+    async function removeInt(id) { if(confirm('Удалить?')) { await supabaseClient.from(T_INT).delete().eq('id', id); loadInt(); } }
 </script>
 </body>
 </html>
