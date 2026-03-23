@@ -22,15 +22,17 @@
         .nav-link-custom { cursor: pointer; padding: 10px 20px; border-radius: 10px; font-weight: bold; color: #adb5bd; transition: 0.3s; }
         .nav-link-custom.active { background: var(--primary); color: white; }
 
-        .stat-box { border-radius: 15px; padding: 15px; text-align: center; height: 100%; transition: 0.3s; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        .stat-box { border-radius: 15px; padding: 15px; text-align: center; height: 100%; transition: 0.3s; box-shadow: 0 4px 10px rgba(0,0,0,0.3); cursor: pointer; }
+        .stat-box:hover { transform: translateY(-5px); filter: brightness(1.1); }
         .bg-total { background: linear-gradient(135deg, #4b6cb7, #182848); }
         .bg-paid { background: linear-gradient(135deg, #11998e, #38ef7d); }
         .bg-debt { background: linear-gradient(135deg, #cb2d3e, #ef473a); }
-        .bg-money { background: linear-gradient(135deg, #f2994a, #f2c94c); color: #000 !important; }
+        .bg-money { background: linear-gradient(135deg, #f2994a, #f2c94c); color: #000 !important; cursor: default; }
         .bg-our { background: linear-gradient(135deg, #6a11cb, #2575fc); }
         .bg-denis { background: linear-gradient(135deg, #f093fb, #f5576c); }
 
-        .prov-badge { padding: 10px; border-radius: 12px; font-weight: bold; font-size: 11px; margin-bottom: 5px; text-align: center; display: flex; flex-direction: column; justify-content: center; min-height: 65px; }
+        .prov-badge { padding: 10px; border-radius: 12px; font-weight: bold; font-size: 11px; margin-bottom: 5px; text-align: center; display: flex; flex-direction: column; justify-content: center; min-height: 65px; cursor: pointer; transition: 0.2s; }
+        .prov-badge:hover { opacity: 0.8; }
         .bg-edem { background: #6f42c1; } .bg-yosso { background: #007bff; }
         .bg-uspeh { background: #fd7e14; } .bg-teamtv { background: #e83e8c; }
         .bg-alltv { background: #20c997; } .bg-teamclub { background: #17a2b8; }
@@ -89,9 +91,9 @@
 
         <div id="sectionTv">
             <div class="row g-3 mb-4">
-                <div class="col-6 col-md-3"><div class="stat-box bg-total"><small>Клиентов</small><h4 id="stat-total">0</h4></div></div>
-                <div class="col-6 col-md-3"><div class="stat-box bg-paid"><small>Оплачено</small><h4 id="stat-paid">0</h4></div></div>
-                <div class="col-6 col-md-3"><div class="stat-box bg-debt"><small>Должники</small><h4 id="stat-unpaid">0</h4></div></div>
+                <div class="col-6 col-md-3" onclick="resetFilters('tv')"><div class="stat-box bg-total"><small>Клиентов</small><h4 id="stat-total">0</h4></div></div>
+                <div class="col-6 col-md-3" onclick="filterByStatus('tv', 'Продлено')"><div class="stat-box bg-paid"><small>Оплачено</small><h4 id="stat-paid">0</h4></div></div>
+                <div class="col-6 col-md-3" onclick="filterByStatus('tv', 'не оплачено')"><div class="stat-box bg-debt"><small>Должники</small><h4 id="stat-unpaid">0</h4></div></div>
                 <div class="col-6 col-md-3"><div class="stat-box bg-money"><small>Сумма</small><h4 id="stat-money">0 €</h4></div></div>
             </div>
             <div class="row g-2 text-center mb-4" id="provider-stats"></div>
@@ -165,11 +167,11 @@
 
         <div id="sectionInt" style="display:none;">
             <div class="row g-3 mb-4">
-                <div class="col-6 col-md-2"><div class="stat-box bg-paid"><small>Оплачено</small><h4 id="int-stat-paid">0</h4></div></div>
-                <div class="col-6 col-md-2"><div class="stat-box bg-debt"><small>Долги</small><h4 id="int-stat-debt">0</h4></div></div>
-                <div class="col-6 col-md-2"><div class="stat-box bg-our"><small>Наши</small><h4 id="int-stat-our">0</h4></div></div>
-                <div class="col-6 col-md-2"><div class="stat-box bg-denis"><small>Дениса</small><h4 id="int-stat-denis">0</h4></div></div>
-                <div class="col-12 col-md-4"><div class="stat-box bg-money"><small>Общая сумма</small><h4 id="int-stat-money">0 €</h4></div></div>
+                <div class="col-6 col-md-2" onclick="filterByStatus('int', 'Оплачено')"><div class="stat-box bg-paid"><small>Оплачено</small><h4 id="int-stat-paid">0</h4></div></div>
+                <div class="col-6 col-md-2" onclick="filterByStatus('int', 'не оплачено')"><div class="stat-box bg-debt"><small>Долги</small><h4 id="int-stat-debt">0</h4></div></div>
+                <div class="col-6 col-md-2" onclick="filterByOwner('Наш')"><div class="stat-box bg-our"><small>Наши</small><h4 id="int-stat-our">0</h4></div></div>
+                <div class="col-6 col-md-2" onclick="filterByOwner('Дениса')"><div class="stat-box bg-denis"><small>Дениса</small><h4 id="int-stat-denis">0</h4></div></div>
+                <div class="col-12 col-md-4" onclick="resetFilters('int')"><div class="stat-box bg-money"><small>Общая сумма (Всего)</small><h4 id="int-stat-money">0 €</h4></div></div>
             </div>
             
             <div class="form-container">
@@ -245,11 +247,10 @@
     let intCache = [], intFilteredList = [];
     const rowsPerPage = 20;
 
-    // --- ФУНКЦИЯ ГЕНЕРАЦИИ СЧЕТА PDF С ПОДДЕРЖКОЙ КИРИЛЛИЦЫ ---
+    // PDF GENERATION
     async function sendInvoice(id, type) {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
-
         const fontUrl = "https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.66/fonts/Roboto/Roboto-Regular.ttf";
         const fontBase64 = await fetch(fontUrl).then(res => res.arrayBuffer()).then(buffer => {
             let binary = '';
@@ -263,7 +264,6 @@
         doc.setFont("Roboto");
 
         const client = (type === 'tv') ? cache.find(x => x.id === id) : intCache.find(x => x.id === id);
-        
         const name = client.name || client.i_name || 'Klient';
         const address = client.address || client.i_address || '-';
         const amount = (type === 'tv' ? client.amount : client.i_amount) || '0';
@@ -303,11 +303,9 @@
         });
 
         let finalY = doc.lastAutoTable.finalY + 15;
-        
         doc.setDrawColor(30, 41, 59);
         doc.setFillColor(248, 250, 252);
         doc.rect(20, finalY, 170, 45, 'FD'); 
-        
         doc.setFontSize(10);
         doc.text("РЕКВИЗИТЫ ДЛЯ ОПЛАТЫ / MAKSEINFO:", 25, finalY + 10);
         doc.text(`Получатель / Saaja: Artjom Fjodorov`, 25, finalY + 18);
@@ -318,6 +316,7 @@
         doc.save(`Arve_${invNr}.pdf`);
     }
 
+    // NAVIGATION
     function switchTab(tab) {
         document.getElementById('sectionTv').style.display = tab === 'tv' ? 'block' : 'none';
         document.getElementById('sectionInt').style.display = tab === 'int' ? 'block' : 'none';
@@ -326,57 +325,43 @@
         if(tab === 'int') loadInt();
     }
 
+    // AUTH
     async function hash(s) {
         const utf8 = new TextEncoder().encode(s);
         const hashBuffer = await crypto.subtle.digest('SHA-256', utf8);
         return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
     }
-    
     async function checkPass() {
         if(await hash(document.getElementById('passInput').value) === HASH) {
             sessionStorage.setItem('isAuth', 'true');
             location.reload();
         } else { document.getElementById('errorMsg').style.display = 'block'; }
     }
-    
     if(sessionStorage.getItem('isAuth') === 'true') {
         document.getElementById('authScreen').style.display = 'none';
         document.getElementById('adminContent').style.display = 'block';
         load();
     }
-    
     function logout() { sessionStorage.removeItem('isAuth'); location.reload(); }
 
-    // --- НОВАЯ ЛОГИКА АВТОМАТИЧЕСКОГО СБРОСА СТАТУСА ---
+    // AUTO RESET STATUS
     async function checkAutoReset() {
         const today = new Date();
         const currentYearMonth = `${today.getFullYear()}-${today.getMonth() + 1}`;
         const lastReset = localStorage.getItem('lastStatusReset');
-
-        // Если сегодня 1-е число и мы еще не делали сброс в этом месяце
         if (today.getDate() === 1 && lastReset !== currentYearMonth) {
-            console.log("Первое число месяца: сброс статусов...");
-            
-            // Сброс для ТВ
-            await supabaseClient.from(T_NAME)
-                .update({ paymentstatus: 'не оплачено' })
-                .eq('paymentstatus', 'Продлено');
-
-            // Сброс для Интернета
-            await supabaseClient.from(T_INT)
-                .update({ i_status: 'не оплачено' })
-                .eq('i_status', 'Оплачено');
-
+            await supabaseClient.from(T_NAME).update({ paymentstatus: 'не оплачено' }).eq('paymentstatus', 'Продлено');
+            await supabaseClient.from(T_INT).update({ i_status: 'не оплачено' }).eq('i_status', 'Оплачено');
             localStorage.setItem('lastStatusReset', currentYearMonth);
         }
     }
-    
+
+    // DATA LOADING TV
     async function load() {
-        await checkAutoReset(); // Проверка перед загрузкой
+        await checkAutoReset();
         const { data, error } = await supabaseClient.from(T_NAME).select('*').order('id', { ascending: false });
         if (!error) { cache = data; filterData(); }
     }
-    
     function filterData() {
         const query = document.getElementById('search').value.toLowerCase();
         const month = document.getElementById('month').value;
@@ -388,6 +373,36 @@
         currentPage = 1; draw();
     }
 
+    // NEW FILTER FUNCTIONS FOR STATS
+    function filterByStatus(type, status) {
+        if(type === 'tv') {
+            filteredList = cache.filter(c => c.paymentstatus === status);
+            currentPage = 1; draw();
+        } else {
+            intFilteredList = intCache.filter(c => c.i_status === status);
+            drawInt();
+        }
+    }
+    function filterByProvider(prov) {
+        filteredList = cache.filter(c => c.provider === prov);
+        currentPage = 1; draw();
+    }
+    function filterByOwner(owner) {
+        intFilteredList = intCache.filter(c => c.i_owner === owner);
+        drawInt();
+    }
+    function resetFilters(type) {
+        if(type === 'tv') {
+            document.getElementById('search').value = '';
+            document.getElementById('month').value = 'all';
+            filterData();
+        } else {
+            document.getElementById('intSearch').value = '';
+            filterInt();
+        }
+    }
+
+    // DRAWING TV
     function draw() {
         const tbody = document.getElementById('dataGrid'); tbody.innerHTML = '';
         const pageItems = filteredList.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage);
@@ -411,11 +426,6 @@
         updateStats(); drawPagination();
     }
 
-    function showMsg(txt) {
-        document.getElementById('modalMsg').innerText = txt || 'Нет комментария';
-        document.getElementById('modalOverlay').style.display = 'flex';
-    }
-
     function updateStats() {
         let s = { t: cache.length, p: 0, m: 0, pr: { "Edem.TV":0, "Yosso.TV":0, "Uspeh.TV":0, "Team.TV":0, "Alltv.club":0, "Team.club":0, "Antifriz.tv":0 } };
         cache.forEach(c => {
@@ -426,9 +436,12 @@
         document.getElementById('stat-unpaid').innerText = s.t - s.p; document.getElementById('stat-money').innerText = s.m + ' €';
         const pList = document.getElementById('provider-stats'); pList.innerHTML = '';
         const colors = { "Edem.TV":"bg-edem", "Yosso.TV":"bg-yosso", "Uspeh.TV":"bg-uspeh", "Team.TV":"bg-teamtv", "Alltv.club":"bg-alltv", "Team.club":"bg-teamclub", "Antifriz.tv":"bg-antifriz" };
-        for(let p in s.pr) { pList.innerHTML += `<div class="col-4 col-md-2"><div class="prov-badge ${colors[p]}"><div>${p}</div><h4>${s.pr[p]}</h4></div></div>`; }
+        for(let p in s.pr) { 
+            pList.innerHTML += `<div class="col-4 col-md-2" onclick="filterByProvider('${p}')"><div class="prov-badge ${colors[p]}"><div>${p}</div><h4>${s.pr[p]}</h4></div></div>`; 
+        }
     }
 
+    // PAGINATION
     function drawPagination() {
         const pagin = document.getElementById('pagination'); pagin.innerHTML = '';
         const total = Math.ceil(filteredList.length / rowsPerPage);
@@ -436,12 +449,11 @@
         for(let i = 1; i <= total; i++) { pagin.innerHTML += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="currentPage=${i};draw()">${i}</button>`; }
     }
 
+    // INTERNET LOGIC
     async function loadInt() {
-        await checkAutoReset();
         const { data, error } = await supabaseClient.from(T_INT).select('*').order('id', { ascending: false });
         if(!error) { intCache = data; filterInt(); }
     }
-
     function filterInt() {
         const query = document.getElementById('intSearch').value.toLowerCase();
         intFilteredList = intCache.filter(c => 
@@ -452,14 +464,12 @@
         );
         drawInt();
     }
-
     function getDiffMonths(startDate) {
         if(!startDate) return 0;
         const start = new Date(startDate);
         const end = new Date();
         return (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth());
     }
-
     function drawInt() {
         const tbody = document.getElementById('intGrid'); tbody.innerHTML = '';
         let s = { p:0, d:0, o:0, den:0, m:0 };
@@ -491,10 +501,7 @@
         document.getElementById('int-stat-money').innerText = s.m + ' €';
     }
 
-    document.getElementById('search').oninput = filterData;
-    document.getElementById('month').onchange = filterData;
-    document.getElementById('intSearch').oninput = filterInt;
-
+    // FORMS SUBMISSION
     document.getElementById('mainForm').onsubmit = async (e) => {
         e.preventDefault();
         const d = { name: document.getElementById('f_name').value, phone: document.getElementById('f_phone').value, nickname: document.getElementById('f_nick').value, email: document.getElementById('f_email').value, address: document.getElementById('f_address').value, amount: document.getElementById('f_amount').value, invoice: document.getElementById('f_invoice').value, provider: document.getElementById('f_provider').value, renewdate: document.getElementById('f_renew').value, paymentstatus: document.getElementById('f_status').value, responsible: document.getElementById('f_resp').value, comment: document.getElementById('f_comment').value };
@@ -515,71 +522,73 @@
             i_nick: document.getElementById('i_nick').value, i_address: document.getElementById('i_address').value, 
             i_phone: document.getElementById('i_phone').value, i_sn: document.getElementById('i_sn').value,
             i_card: document.getElementById('i_card').value, i_prov_net: document.getElementById('i_prov_net').value, 
-            i_prov_tv: document.getElementById('i_prov_tv').value, i_pay_date: document.getElementById('i_pay_date').value || null, 
-            i_pay_till: document.getElementById('i_pay_till').value || null, i_status: document.getElementById('i_status').value, 
-            i_amount: parseFloat(document.getElementById('i_amount').value) || 0, i_owner: document.getElementById('i_owner').value, 
+            i_prov_tv: document.getElementById('i_prov_tv').value, i_pay_date: document.getElementById('i_pay_date').value || null,
+            i_pay_till: document.getElementById('i_pay_till').value || null, i_amount: document.getElementById('i_amount').value,
+            i_owner: document.getElementById('i_owner').value, i_status: document.getElementById('i_status').value,
             i_comm: document.getElementById('i_comm').value
         };
     }
 
+    // ACTIONS
+    function showMsg(txt) {
+        document.getElementById('modalMsg').innerText = txt || 'Нет комментария';
+        document.getElementById('modalOverlay').style.display = 'flex';
+    }
+
+    async function remove(id) { if(confirm('Удалить?')) { await supabaseClient.from(T_NAME).delete().eq('id', id); load(); } }
+    async function removeInt(id) { if(confirm('Удалить интернет клиента?')) { await supabaseClient.from(T_INT).delete().eq('id', id); loadInt(); } }
+
     function startEdit(id) {
         const c = cache.find(x => x.id === id);
         document.getElementById('edit_id').value = c.id;
-        document.getElementById('f_name').value = c.name || ''; document.getElementById('f_phone').value = c.phone || '';
-        document.getElementById('f_nick').value = c.nickname || ''; document.getElementById('f_email').value = c.email || '';
-        document.getElementById('f_address').value = c.address || '';
-        document.getElementById('f_amount').value = c.amount || '';
-        document.getElementById('f_invoice').value = c.invoice || '';
+        document.getElementById('f_name').value = c.name;
+        document.getElementById('f_phone').value = c.phone;
+        document.getElementById('f_nick').value = c.nickname;
+        document.getElementById('f_email').value = c.email;
+        document.getElementById('f_address').value = c.address;
+        document.getElementById('f_amount').value = c.amount;
+        document.getElementById('f_invoice').value = c.invoice;
         document.getElementById('f_provider').value = c.provider;
-        document.getElementById('f_renew').value = c.renewdate || '';
+        document.getElementById('f_renew').value = c.renewdate;
         document.getElementById('f_status').value = c.paymentstatus;
-        document.getElementById('f_resp').value = c.responsible || 'Общий';
-        document.getElementById('f_comment').value = c.comment || '';
-        
+        document.getElementById('f_resp').value = c.responsible;
+        document.getElementById('f_comment').value = c.comment;
         document.getElementById('btn-add').style.display = 'none';
         document.getElementById('btn-save').style.display = 'block';
+        window.scrollTo(0,0);
     }
 
     async function saveUpdate() {
         const id = document.getElementById('edit_id').value;
         const d = { name: document.getElementById('f_name').value, phone: document.getElementById('f_phone').value, nickname: document.getElementById('f_nick').value, email: document.getElementById('f_email').value, address: document.getElementById('f_address').value, amount: document.getElementById('f_amount').value, invoice: document.getElementById('f_invoice').value, provider: document.getElementById('f_provider').value, renewdate: document.getElementById('f_renew').value, paymentstatus: document.getElementById('f_status').value, responsible: document.getElementById('f_resp').value, comment: document.getElementById('f_comment').value };
         await supabaseClient.from(T_NAME).update(d).eq('id', id);
-        cancelEdit(); load();
-    }
-
-    function cancelEdit() {
         document.getElementById('mainForm').reset();
         document.getElementById('btn-add').style.display = 'block';
         document.getElementById('btn-save').style.display = 'none';
-    }
-
-    async function remove(id) {
-        if(confirm('Удалить клиента?')) {
-            await supabaseClient.from(T_NAME).delete().eq('id', id); load();
-        }
+        load();
     }
 
     function startIntEdit(id) {
         const c = intCache.find(x => x.id === id);
         document.getElementById('edit_int_id').value = c.id;
-        document.getElementById('i_start').value = c.i_start || '';
-        document.getElementById('i_name').value = c.i_name || '';
-        document.getElementById('i_nick').value = c.i_nick || '';
-        document.getElementById('i_address').value = c.i_address || '';
-        document.getElementById('i_phone').value = c.i_phone || '';
-        document.getElementById('i_sn').value = c.i_sn || '';
-        document.getElementById('i_card').value = c.i_card || '';
+        document.getElementById('i_start').value = c.i_start;
+        document.getElementById('i_name').value = c.i_name;
+        document.getElementById('i_nick').value = c.i_nick;
+        document.getElementById('i_address').value = c.i_address;
+        document.getElementById('i_phone').value = c.i_phone;
+        document.getElementById('i_sn').value = c.i_sn;
+        document.getElementById('i_card').value = c.i_card;
         document.getElementById('i_prov_net').value = c.i_prov_net;
         document.getElementById('i_prov_tv').value = c.i_prov_tv;
-        document.getElementById('i_pay_date').value = c.i_pay_date || '';
-        document.getElementById('i_pay_till').value = c.i_pay_till || '';
-        document.getElementById('i_amount').value = c.i_amount || 0;
+        document.getElementById('i_pay_date').value = c.i_pay_date;
+        document.getElementById('i_pay_till').value = c.i_pay_till;
+        document.getElementById('i_amount').value = c.i_amount;
         document.getElementById('i_owner').value = c.i_owner;
         document.getElementById('i_status').value = c.i_status;
-        document.getElementById('i_comm').value = c.i_comm || '';
-
+        document.getElementById('i_comm').value = c.i_comm;
         document.getElementById('btn-int-add').style.display = 'none';
         document.getElementById('btn-int-save').style.display = 'block';
+        window.scrollTo(0, 400);
     }
 
     async function saveIntUpdate() {
@@ -592,12 +601,11 @@
         loadInt();
     }
 
-    async function removeInt(id) {
-        if(confirm('Удалить клиента интернет?')) {
-            await supabaseClient.from(T_INT).delete().eq('id', id); loadInt();
-        }
-    }
-</script>
+    // LISTENERS
+    document.getElementById('search').oninput = filterData;
+    document.getElementById('month').onchange = filterData;
+    document.getElementById('intSearch').oninput = filterInt;
 
+</script>
 </body>
 </html>
