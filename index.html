@@ -250,7 +250,6 @@
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
 
-        // 1. Загрузка шрифта Roboto (поддерживает русский язык)
         const fontUrl = "https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.66/fonts/Roboto/Roboto-Regular.ttf";
         const fontBase64 = await fetch(fontUrl).then(res => res.arrayBuffer()).then(buffer => {
             let binary = '';
@@ -271,7 +270,6 @@
         const invNr = (type === 'tv' ? client.invoice : client.i_card) || `INV-${id}`;
         const date = new Date().toLocaleDateString('ru-RU');
         
-        // Шапка синяя
         doc.setFillColor(30, 41, 59); 
         doc.rect(0, 0, 210, 35, 'F');
         doc.setTextColor(255, 255, 255);
@@ -280,7 +278,6 @@
         doc.setFontSize(10);
         doc.text("ARVE / СЧЁТ", 170, 22);
 
-        // Инфо
         doc.setTextColor(0, 0, 0);
         doc.setFontSize(10);
         doc.text("Продавец / Müüja:", 20, 50);
@@ -296,7 +293,6 @@
         doc.text(`Номер счета: ${invNr}`, 20, 80);
         doc.text(`Дата: ${date}`, 120, 80);
 
-        // Таблица (ВАЖНО: указываем шрифт Roboto)
         doc.autoTable({
             startY: 90,
             head: [['Описание (Kirjeldus)', 'Сумма (Summa)']],
@@ -308,7 +304,6 @@
 
         let finalY = doc.lastAutoTable.finalY + 15;
         
-        // Блок оплаты LHV
         doc.setDrawColor(30, 41, 59);
         doc.setFillColor(248, 250, 252);
         doc.rect(20, finalY, 170, 45, 'FD'); 
@@ -351,8 +346,33 @@
     }
     
     function logout() { sessionStorage.removeItem('isAuth'); location.reload(); }
+
+    // --- НОВАЯ ЛОГИКА АВТОМАТИЧЕСКОГО СБРОСА СТАТУСА ---
+    async function checkAutoReset() {
+        const today = new Date();
+        const currentYearMonth = `${today.getFullYear()}-${today.getMonth() + 1}`;
+        const lastReset = localStorage.getItem('lastStatusReset');
+
+        // Если сегодня 1-е число и мы еще не делали сброс в этом месяце
+        if (today.getDate() === 1 && lastReset !== currentYearMonth) {
+            console.log("Первое число месяца: сброс статусов...");
+            
+            // Сброс для ТВ
+            await supabaseClient.from(T_NAME)
+                .update({ paymentstatus: 'не оплачено' })
+                .eq('paymentstatus', 'Продлено');
+
+            // Сброс для Интернета
+            await supabaseClient.from(T_INT)
+                .update({ i_status: 'не оплачено' })
+                .eq('i_status', 'Оплачено');
+
+            localStorage.setItem('lastStatusReset', currentYearMonth);
+        }
+    }
     
     async function load() {
+        await checkAutoReset(); // Проверка перед загрузкой
         const { data, error } = await supabaseClient.from(T_NAME).select('*').order('id', { ascending: false });
         if (!error) { cache = data; filterData(); }
     }
@@ -417,6 +437,7 @@
     }
 
     async function loadInt() {
+        await checkAutoReset();
         const { data, error } = await supabaseClient.from(T_INT).select('*').order('id', { ascending: false });
         if(!error) { intCache = data; filterInt(); }
     }
@@ -506,45 +527,77 @@
         document.getElementById('edit_id').value = c.id;
         document.getElementById('f_name').value = c.name || ''; document.getElementById('f_phone').value = c.phone || '';
         document.getElementById('f_nick').value = c.nickname || ''; document.getElementById('f_email').value = c.email || '';
-        document.getElementById('f_address').value = c.address || ''; document.getElementById('f_amount').value = c.amount || '';
-        document.getElementById('f_invoice').value = c.invoice || ''; document.getElementById('f_provider').value = c.provider;
-        document.getElementById('f_renew').value = c.renewdate || ''; document.getElementById('f_status').value = c.paymentstatus;
-        document.getElementById('f_resp').value = c.responsible || 'Общий'; document.getElementById('f_comment').value = c.comment || '';
-        document.getElementById('btn-add').style.display = 'none'; document.getElementById('btn-save').style.display = 'block';
-        window.scrollTo(0,0);
+        document.getElementById('f_address').value = c.address || '';
+        document.getElementById('f_amount').value = c.amount || '';
+        document.getElementById('f_invoice').value = c.invoice || '';
+        document.getElementById('f_provider').value = c.provider;
+        document.getElementById('f_renew').value = c.renewdate || '';
+        document.getElementById('f_status').value = c.paymentstatus;
+        document.getElementById('f_resp').value = c.responsible || 'Общий';
+        document.getElementById('f_comment').value = c.comment || '';
+        
+        document.getElementById('btn-add').style.display = 'none';
+        document.getElementById('btn-save').style.display = 'block';
     }
 
     async function saveUpdate() {
         const id = document.getElementById('edit_id').value;
         const d = { name: document.getElementById('f_name').value, phone: document.getElementById('f_phone').value, nickname: document.getElementById('f_nick').value, email: document.getElementById('f_email').value, address: document.getElementById('f_address').value, amount: document.getElementById('f_amount').value, invoice: document.getElementById('f_invoice').value, provider: document.getElementById('f_provider').value, renewdate: document.getElementById('f_renew').value, paymentstatus: document.getElementById('f_status').value, responsible: document.getElementById('f_resp').value, comment: document.getElementById('f_comment').value };
         await supabaseClient.from(T_NAME).update(d).eq('id', id);
-        location.reload();
+        cancelEdit(); load();
     }
 
-    async function remove(id) { if(confirm('Удалить?')) { await supabaseClient.from(T_NAME).delete().eq('id', id); load(); } }
+    function cancelEdit() {
+        document.getElementById('mainForm').reset();
+        document.getElementById('btn-add').style.display = 'block';
+        document.getElementById('btn-save').style.display = 'none';
+    }
+
+    async function remove(id) {
+        if(confirm('Удалить клиента?')) {
+            await supabaseClient.from(T_NAME).delete().eq('id', id); load();
+        }
+    }
 
     function startIntEdit(id) {
         const c = intCache.find(x => x.id === id);
         document.getElementById('edit_int_id').value = c.id;
-        document.getElementById('i_start').value = c.i_start; document.getElementById('i_name').value = c.i_name;
-        document.getElementById('i_nick').value = c.i_nick; document.getElementById('i_address').value = c.i_address;
-        document.getElementById('i_phone').value = c.i_phone; document.getElementById('i_sn').value = c.i_sn;
-        document.getElementById('i_card').value = c.i_card; document.getElementById('i_prov_net').value = c.i_prov_net;
-        document.getElementById('i_prov_tv').value = c.i_prov_tv; document.getElementById('i_pay_date').value = c.i_pay_date;
-        document.getElementById('i_pay_till').value = c.i_pay_till; document.getElementById('i_status').value = c.i_status;
-        document.getElementById('i_amount').value = c.i_amount; document.getElementById('i_owner').value = c.i_owner;
-        document.getElementById('i_comm').value = c.i_comm;
-        document.getElementById('btn-int-add').style.display = 'none'; document.getElementById('btn-int-save').style.display = 'block';
-        window.scrollTo(0,0);
+        document.getElementById('i_start').value = c.i_start || '';
+        document.getElementById('i_name').value = c.i_name || '';
+        document.getElementById('i_nick').value = c.i_nick || '';
+        document.getElementById('i_address').value = c.i_address || '';
+        document.getElementById('i_phone').value = c.i_phone || '';
+        document.getElementById('i_sn').value = c.i_sn || '';
+        document.getElementById('i_card').value = c.i_card || '';
+        document.getElementById('i_prov_net').value = c.i_prov_net;
+        document.getElementById('i_prov_tv').value = c.i_prov_tv;
+        document.getElementById('i_pay_date').value = c.i_pay_date || '';
+        document.getElementById('i_pay_till').value = c.i_pay_till || '';
+        document.getElementById('i_amount').value = c.i_amount || 0;
+        document.getElementById('i_owner').value = c.i_owner;
+        document.getElementById('i_status').value = c.i_status;
+        document.getElementById('i_comm').value = c.i_comm || '';
+
+        document.getElementById('btn-int-add').style.display = 'none';
+        document.getElementById('btn-int-save').style.display = 'block';
     }
 
     async function saveIntUpdate() {
         const id = document.getElementById('edit_int_id').value;
-        await supabaseClient.from(T_INT).update(getIntFormData()).eq('id', id);
-        location.reload();
+        const d = getIntFormData();
+        await supabaseClient.from(T_INT).update(d).eq('id', id);
+        document.getElementById('intForm').reset();
+        document.getElementById('btn-int-add').style.display = 'block';
+        document.getElementById('btn-int-save').style.display = 'none';
+        loadInt();
     }
 
-    async function removeInt(id) { if(confirm('Удалить?')) { await supabaseClient.from(T_INT).delete().eq('id', id); loadInt(); } }
+    async function removeInt(id) {
+        if(confirm('Удалить клиента интернет?')) {
+            await supabaseClient.from(T_INT).delete().eq('id', id); loadInt();
+        }
+    }
 </script>
+
 </body>
 </html>
