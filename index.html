@@ -64,6 +64,21 @@
         .page-btn.active { background: var(--primary); }
 
         #modalOverlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 11000; align-items: center; justify-content: center; }
+
+        /* ГРАФИКА И ДОП КНОПКИ */
+        .glass-card { background: rgba(28, 37, 46, 0.6); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 20px; padding: 25px; box-shadow: 0 15px 35px rgba(0,0,0,0.2); }
+        .card-header-custom { display: flex; align-items: center; gap: 12px; font-size: 1.1rem; font-weight: 600; color: #fff; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px; }
+        .custom-stat-table { background: transparent !important; margin-bottom: 0; color: white !important; }
+        .custom-stat-table thead th { background: transparent; color: #adb5bd; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 1px; border: none; }
+        .custom-stat-table tbody td { border-color: rgba(255,255,255,0.05); padding: 15px 10px; font-weight: 500; }
+        .year-badge { background: var(--primary); padding: 5px 12px; border-radius: 8px; font-size: 0.85rem; }
+        .total-sum { color: #38ef7d; font-family: monospace; font-size: 1.1rem; }
+        .prog-label { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.9rem; }
+        .progress-custom { height: 10px; background: rgba(255,255,255,0.05); border-radius: 10px; overflow: hidden; margin-bottom: 20px; }
+        
+        .btn-debug { position: fixed; bottom: 80px; right: 20px; z-index: 999; background: #dc3545; color: white; border: none; padding: 10px 15px; border-radius: 50px; font-weight: bold; cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        .btn-to-top { position: fixed; bottom: 20px; right: 20px; z-index: 999; background: var(--primary); color: white; border: none; width: 50px; height: 50px; border-radius: 50%; font-size: 24px; cursor: pointer; display: none; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        .clock-top { font-family: monospace; font-size: 1.1rem; color: #38ef7d; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -80,7 +95,10 @@
 <div id="adminContent">
     <div class="container-fluid px-3 pt-4">
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h3>Ida-tv-Setuptv-Admin</h3>
+            <div class="d-flex align-items-center gap-3">
+                <h3 class="mb-0">Ida-tv-Setuptv-Admin</h3>
+                <div id="clockDisplay" class="clock-top d-none d-md-block"></div>
+            </div>
             <button class="btn btn-outline-danger btn-sm" onclick="logout()">Выход</button>
         </div>
 
@@ -225,6 +243,43 @@
                 <tbody id="intGrid"></tbody>
             </table>
         </div>
+
+        <!-- НОВАЯ АНАЛИТИКА ВНИЗУ -->
+        <div class="mt-5 pb-5">
+            <div class="d-flex justify-content-between align-items-center mb-4 px-2">
+                <h4 class="text-white fw-bold"><span class="text-primary">|</span> Аналитика и годовая статистика</h4>
+                <select id="statYearFilter" class="form-select bg-dark text-white border-secondary w-auto" onchange="updateBottomCharts()">
+                    <option value="all">Все годы</option>
+                    <option value="2023">2023 год</option>
+                    <option value="2024">2024 год</option>
+                    <option value="2025">2025 год</option>
+                    <option value="2026">2026 год</option>
+                    <option value="2027">2027 год</option>
+                </select>
+            </div>
+
+            <div class="row g-4">
+                <div class="col-xl-7">
+                    <div class="glass-card h-100">
+                        <div class="card-header-custom">💰 Финансовая история</div>
+                        <div class="table-responsive mt-3">
+                            <table class="table custom-stat-table">
+                                <thead>
+                                    <tr><th>Период</th><th>TV Доход</th><th>Net Доход</th><th class="text-end">Итого</th></tr>
+                                </thead>
+                                <tbody id="yearly-income-stats"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-5">
+                    <div class="glass-card h-100">
+                        <div class="card-header-custom">📡 Распределение провайдеров</div>
+                        <div id="provider-change-stats" class="mt-4"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -234,6 +289,9 @@
         <button class="btn btn-primary w-100 mt-3" onclick="document.getElementById('modalOverlay').style.display='none'">Закрыть</button>
     </div>
 </div>
+
+<button class="btn-debug" onclick="findAndFilterDates()">🔍 ПОИСК ЗАПИСЕЙ 2021-2025</button>
+<button class="btn-to-top" id="btnToTop" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">↑</button>
 
 <script>
     const HASH = "69972251f3f4bf0e0a7c57dc735317bf462659d7044bc5e7ad9fd823fdd12b3a";
@@ -246,6 +304,45 @@
     let cache = [], filteredList = [], currentPage = 1;
     let intCache = [], intFilteredList = [];
     const rowsPerPage = 20;
+
+    // ЖИВЫЕ ЧАСЫ
+    function updateClock() {
+        const now = new Date();
+        const options = { weekday: 'short', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' };
+        document.getElementById('clockDisplay').innerText = now.toLocaleString('ru-RU', options);
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // КНОПКА НАВЕРХ
+    window.onscroll = function() {
+        const btn = document.getElementById("btnToTop");
+        if (document.body.scrollTop > 300 || document.documentElement.scrollTop > 300) {
+            btn.style.display = "block";
+        } else {
+            btn.style.display = "none";
+        }
+    };
+
+    // УМНЫЙ ПОИСК 2021-2025
+    function findAndFilterDates() {
+        filteredList = cache.filter(c => {
+            if (!c.renewdate) return false;
+            const year = parseInt(c.renewdate.split('-')[0]);
+            return year >= 2021 && year <= 2025;
+        });
+        
+        intFilteredList = intCache.filter(c => {
+            if (!c.i_pay_date) return false;
+            const year = parseInt(c.i_pay_date.split('-')[0]);
+            return year >= 2021 && year <= 2025;
+        });
+
+        currentPage = 1;
+        draw();
+        drawInt();
+        alert("Найдено записей (ТВ + ИНТ): " + (filteredList.length + intFilteredList.length));
+    }
 
     // PDF GENERATION
     async function sendInvoice(id, type) {
@@ -373,7 +470,6 @@
         currentPage = 1; draw();
     }
 
-    // NEW FILTER FUNCTIONS FOR STATS
     function filterByStatus(type, status) {
         if(type === 'tv') {
             filteredList = cache.filter(c => c.paymentstatus === status);
@@ -439,9 +535,9 @@
         for(let p in s.pr) { 
             pList.innerHTML += `<div class="col-4 col-md-2" onclick="filterByProvider('${p}')"><div class="prov-badge ${colors[p]}"><div>${p}</div><h4>${s.pr[p]}</h4></div></div>`; 
         }
+        updateBottomCharts();
     }
 
-    // PAGINATION
     function drawPagination() {
         const pagin = document.getElementById('pagination'); pagin.innerHTML = '';
         const total = Math.ceil(filteredList.length / rowsPerPage);
@@ -449,7 +545,6 @@
         for(let i = 1; i <= total; i++) { pagin.innerHTML += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="currentPage=${i};draw()">${i}</button>`; }
     }
 
-    // INTERNET LOGIC
     async function loadInt() {
         const { data, error } = await supabaseClient.from(T_INT).select('*').order('id', { ascending: false });
         if(!error) { intCache = data; filterInt(); }
@@ -499,9 +594,64 @@
         document.getElementById('int-stat-paid').innerText = s.p; document.getElementById('int-stat-debt').innerText = s.d;
         document.getElementById('int-stat-our').innerText = s.o; document.getElementById('int-stat-denis').innerText = s.den;
         document.getElementById('int-stat-money').innerText = s.m + ' €';
+        updateBottomCharts();
     }
 
-    // FORMS SUBMISSION
+    function updateBottomCharts() {
+        const incomeBody = document.getElementById('yearly-income-stats');
+        const provBody = document.getElementById('provider-change-stats');
+        const yearFilter = document.getElementById('statYearFilter').value;
+        if(!incomeBody || !provBody) return;
+
+        let yearlyData = {};
+
+        cache.forEach(c => {
+            if(c.paymentstatus === 'Продлено' && c.renewdate) {
+                const year = c.renewdate.split('-')[0];
+                if(yearFilter !== 'all' && year !== yearFilter) return;
+                if(!yearlyData[year]) yearlyData[year] = { tv: 0, int: 0 };
+                yearlyData[year].tv += parseFloat(c.amount || 0);
+            }
+        });
+
+        intCache.forEach(c => {
+            if(c.i_status === 'Оплачено' && c.i_pay_date) {
+                const year = c.i_pay_date.split('-')[0];
+                if(yearFilter !== 'all' && year !== yearFilter) return;
+                if(!yearlyData[year]) yearlyData[year] = { tv: 0, int: 0 };
+                yearlyData[year].int += parseFloat(c.i_amount || 0);
+            }
+        });
+
+        incomeBody.innerHTML = '';
+        const sortedYears = Object.keys(yearlyData).sort((a,b) => b-a);
+        if(sortedYears.length === 0) incomeBody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-muted">Нет данных</td></tr>';
+
+        sortedYears.forEach(y => {
+            const tvVal = yearlyData[y].tv.toFixed(2);
+            const intVal = yearlyData[y].int.toFixed(2);
+            const total = (yearlyData[y].tv + yearlyData[y].int).toFixed(2);
+            incomeBody.innerHTML += `<tr><td><span class="year-badge">${y}</span></td><td>${tvVal} €</td><td>${intVal} €</td><td class="text-end"><span class="total-sum">${total} €</span></td></tr>`;
+        });
+
+        provBody.innerHTML = '';
+        let provCounts = {};
+        cache.forEach(c => { if(c.provider) provCounts[c.provider] = (provCounts[c.provider] || 0) + 1; });
+        const sortedProvs = Object.entries(provCounts).sort((a,b) => b[1] - a[1]);
+
+        sortedProvs.forEach(([name, count]) => {
+            const percentage = ((count / (cache.length || 1)) * 100).toFixed(1);
+            let barColor = name.includes('Edem') ? '#6f42c1' : (name.includes('Yosso') ? '#007bff' : (name.includes('Antifriz') ? '#00d4ff' : '#1a66ff'));
+            provBody.innerHTML += `
+                <div class="prov-item">
+                    <div class="prog-label"><span>${name}</span><span class="text-muted">${count} чел. <small>(${percentage}%)</small></span></div>
+                    <div class="progress progress-custom">
+                        <div class="progress-bar" style="width: ${percentage}%; background-color: ${barColor}"></div>
+                    </div>
+                </div>`;
+        });
+    }
+
     document.getElementById('mainForm').onsubmit = async (e) => {
         e.preventDefault();
         const d = { name: document.getElementById('f_name').value, phone: document.getElementById('f_phone').value, nickname: document.getElementById('f_nick').value, email: document.getElementById('f_email').value, address: document.getElementById('f_address').value, amount: document.getElementById('f_amount').value, invoice: document.getElementById('f_invoice').value, provider: document.getElementById('f_provider').value, renewdate: document.getElementById('f_renew').value, paymentstatus: document.getElementById('f_status').value, responsible: document.getElementById('f_resp').value, comment: document.getElementById('f_comment').value };
@@ -529,7 +679,6 @@
         };
     }
 
-    // ACTIONS
     function showMsg(txt) {
         document.getElementById('modalMsg').innerText = txt || 'Нет комментария';
         document.getElementById('modalOverlay').style.display = 'flex';
@@ -601,135 +750,10 @@
         loadInt();
     }
 
-    // LISTENERS
     document.getElementById('search').oninput = filterData;
     document.getElementById('month').onchange = filterData;
     document.getElementById('intSearch').oninput = filterInt;
 
-</script>
-    <!-- Вставьте этот блок ПЕРЕД закрывающим тегом </body> -->
-
-<div class="container-fluid px-3 mt-5">
-    <div class="form-container" style="background: var(--card-bg); border: 1px solid #2c3b4a;">
-        <h5 class="text-white mb-4">📊 Аналитика и годовая статистика</h5>
-        
-        <div class="row">
-            <!-- Таблица доходов по годам -->
-            <div class="col-md-6 mb-4">
-                <div class="p-3 rounded-3" style="background: rgba(0,0,0,0.2); border: 1px solid #2c3b4a;">
-                    <h6 class="text-primary border-bottom border-secondary pb-2">Доход по годам (Оплачено)</h6>
-                    <table class="table table-borderless text-white mt-3">
-                        <thead>
-                            <tr class="small text-muted">
-                                <th>Год</th>
-                                <th>ТВ</th>
-                                <th>Интернет</th>
-                                <th>Итого</th>
-                            </tr>
-                        </thead>
-                        <tbody id="yearly-income-stats">
-                            <!-- Заполняется автоматически через JS -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Статистика изменения количества клиентов -->
-            <div class="col-md-6 mb-4">
-                <div class="p-3 rounded-3" style="background: rgba(0,0,0,0.2); border: 1px solid #2c3b4a;">
-                    <h6 class="text-success border-bottom border-secondary pb-2">Клиенты провайдеров (Динамика)</h6>
-                    <div id="provider-change-stats" class="mt-3">
-                        <!-- Заполняется автоматически через JS -->
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<script>
-    // Добавьте этот код в конец вашего блока <script>, перед закрывающим </script>
-
-    // Функция для обновления нижней статистики
-    function updateBottomCharts() {
-        const incomeBody = document.getElementById('yearly-income-stats');
-        const provBody = document.getElementById('provider-change-stats');
-        
-        // 1. Расчет доходов по годам
-        let yearlyData = {};
-
-        // Из ТВ кэша
-        cache.forEach(c => {
-            if(c.paymentstatus === 'Продлено' && c.renewdate) {
-                const year = c.renewdate.split('-')[0];
-                if(!yearlyData[year]) yearlyData[year] = { tv: 0, int: 0 };
-                yearlyData[year].tv += parseFloat(c.amount || 0);
-            }
-        });
-
-        // Из Интернет кэша
-        intCache.forEach(c => {
-            if(c.i_status === 'Оплачено' && c.i_pay_date) {
-                const year = c.i_pay_date.split('-')[0];
-                if(!yearlyData[year]) yearlyData[year] = { tv: 0, int: 0 };
-                yearlyData[year].int += parseFloat(c.i_amount || 0);
-            }
-        });
-
-        incomeBody.innerHTML = '';
-        const sortedYears = Object.keys(yearlyData).sort((a,b) => b-a);
-        
-        if(sortedYears.length === 0) {
-            incomeBody.innerHTML = '<tr><td colspan="4" class="text-center small text-muted">Нет данных для расчета</td></tr>';
-        }
-
-        sortedYears.forEach(y => {
-            const total = yearlyData[y].tv + yearlyData[y].int;
-            incomeBody.innerHTML += `
-                <tr>
-                    <td><span class="badge bg-primary">${y}</span></td>
-                    <td>${yearlyData[y].tv.toFixed(2)} €</td>
-                    <td>${yearlyData[y].int.toFixed(2)} €</td>
-                    <td class="fw-bold text-warning">${total.toFixed(2)} €</td>
-                </tr>
-            `;
-        });
-
-        // 2. Расчет провайдеров (Количество клиентов)
-        provBody.innerHTML = '';
-        let provCounts = {};
-        cache.forEach(c => {
-            provCounts[c.provider] = (provCounts[c.provider] || 0) + 1;
-        });
-
-        for(let p in provCounts) {
-            const percentage = ((provCounts[p] / cache.length) * 100).toFixed(1);
-            provBody.innerHTML += `
-                <div class="mb-2">
-                    <div class="d-flex justify-content-between small mb-1">
-                        <span>${p}</span>
-                        <span>${provCounts[p]} чел. (${percentage}%)</span>
-                    </div>
-                    <div class="progress" style="height: 6px; background: #2c3b4a;">
-                        <div class="progress-bar bg-info" style="width: ${percentage}%"></div>
-                    </div>
-                </div>
-            `;
-        }
-    }
-
-    // Модифицируем существующие функции, чтобы они вызывали обновление низа
-    const originalUpdateStats = updateStats;
-    updateStats = function() {
-        originalUpdateStats();
-        updateBottomCharts();
-    };
-
-    const originalDrawInt = drawInt;
-    drawInt = function() {
-        originalDrawInt();
-        updateBottomCharts();
-    };
 </script>
 </body>
 </html>
