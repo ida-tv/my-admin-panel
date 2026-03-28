@@ -76,9 +76,18 @@
         .prog-label { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.9rem; }
         .progress-custom { height: 10px; background: rgba(255,255,255,0.05); border-radius: 10px; overflow: hidden; margin-bottom: 20px; }
         
-        .btn-debug { position: fixed; bottom: 80px; right: 20px; z-index: 999; background: #dc3545; color: white; border: none; padding: 10px 15px; border-radius: 50px; font-weight: bold; cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
         .btn-to-top { position: fixed; bottom: 20px; right: 20px; z-index: 999; background: var(--primary); color: white; border: none; width: 50px; height: 50px; border-radius: 50%; font-size: 24px; cursor: pointer; display: none; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
         .clock-top { font-family: monospace; font-size: 1.1rem; color: #38ef7d; font-weight: bold; }
+
+        /* ОТДЕЛЬНАЯ СТРАНИЦА DASHBOARD */
+        #dashboardOverlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-dark); z-index: 20000; overflow-y: auto; padding: 40px 20px; }
+        .btn-close-dash { position: absolute; top: 20px; right: 20px; }
+
+        /* СТИЛИ ДЛЯ РАДИО */
+        .radio-container { background: rgba(255,255,255,0.05); padding: 5px 12px; border-radius: 50px; display: flex; align-items: center; gap: 8px; border: 1px solid rgba(255,255,255,0.1); }
+        .radio-btn { background: none; border: none; color: white; cursor: pointer; font-size: 1.1rem; padding: 0; line-height: 1; transition: 0.2s; }
+        .radio-btn:hover { color: #38ef7d; }
+        .radio-vol { width: 50px; height: 4px; cursor: pointer; accent-color: #38ef7d; }
     </style>
 </head>
 <body>
@@ -98,8 +107,18 @@
             <div class="d-flex align-items-center gap-3">
                 <h3 class="mb-0">Ida-tv-Setuptv-Admin</h3>
                 <div id="clockDisplay" class="clock-top d-none d-md-block"></div>
+                
+                <!-- БЛОК РАДИО -->
+                <div class="radio-container ms-2">
+                    <span style="font-size: 11px; color: #adb5bd; font-weight: bold;">RUS RADIO:</span>
+                    <button class="radio-btn" id="radioToggle" onclick="toggleRadio()">▶️</button>
+                    <input type="range" class="radio-vol" id="radioVolume" min="0" max="1" step="0.1" value="0.5" oninput="changeVolume(this.value)">
+                </div>
             </div>
-            <button class="btn btn-outline-danger btn-sm" onclick="logout()">Выход</button>
+            <div>
+                <button class="btn btn-primary btn-sm me-2" onclick="openDashboard()">📊 ОТКРЫТЬ DASHBOARD</button>
+                <button class="btn btn-outline-danger btn-sm" onclick="logout()">Выход</button>
+            </div>
         </div>
 
         <div class="nav-custom">
@@ -243,40 +262,38 @@
                 <tbody id="intGrid"></tbody>
             </table>
         </div>
+    </div>
+</div>
 
-        <!-- НОВАЯ АНАЛИТИКА ВНИЗУ -->
-        <div class="mt-5 pb-5">
-            <div class="d-flex justify-content-between align-items-center mb-4 px-2">
-                <h4 class="text-white fw-bold"><span class="text-primary">|</span> Аналитика и годовая статистика</h4>
-                <select id="statYearFilter" class="form-select bg-dark text-white border-secondary w-auto" onchange="updateBottomCharts()">
-                    <option value="all">Все годы</option>
-                    <option value="2023">2023 год</option>
-                    <option value="2024">2024 год</option>
-                    <option value="2025">2025 год</option>
-                    <option value="2026">2026 год</option>
-                    <option value="2027">2027 год</option>
-                </select>
-            </div>
+<!-- DASHBOARD OVERLAY -->
+<div id="dashboardOverlay">
+    <button class="btn btn-danger btn-close-dash" onclick="closeDashboard()">Закрыть Dashboard</button>
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4 px-2">
+            <h4 class="text-white fw-bold"><span class="text-primary">|</span> Аналитика и годовая статистика</h4>
+            <select id="statYearFilter" class="form-select bg-dark text-white border-secondary w-auto" onchange="updateBottomCharts()">
+                <option value="all">Все годы</option>
+            </select>
+        </div>
 
-            <div class="row g-4">
-                <div class="col-xl-7">
-                    <div class="glass-card h-100">
-                        <div class="card-header-custom">💰 Финансовая история</div>
-                        <div class="table-responsive mt-3">
-                            <table class="table custom-stat-table">
-                                <thead>
-                                    <tr><th>Период</th><th>TV Доход</th><th>Net Доход</th><th class="text-end">Итого</th></tr>
-                                </thead>
-                                <tbody id="yearly-income-stats"></tbody>
-                            </table>
-                        </div>
+        <div class="row g-4">
+            <div class="col-xl-7">
+                <div class="glass-card h-100">
+                    <div class="card-header-custom">💰 Финансовая история</div>
+                    <div class="table-responsive mt-3">
+                        <table class="table custom-stat-table">
+                            <thead>
+                                <tr><th>Период</th><th>TV Доход</th><th>Net Доход</th><th class="text-end">Итого</th></tr>
+                            </thead>
+                            <tbody id="yearly-income-stats"></tbody>
+                        </table>
                     </div>
                 </div>
-                <div class="col-xl-5">
-                    <div class="glass-card h-100">
-                        <div class="card-header-custom">📡 Распределение провайдеров</div>
-                        <div id="provider-change-stats" class="mt-4"></div>
-                    </div>
+            </div>
+            <div class="col-xl-5">
+                <div class="glass-card h-100">
+                    <div class="card-header-custom">📡 Распределение провайдеров</div>
+                    <div id="provider-change-stats" class="mt-4"></div>
                 </div>
             </div>
         </div>
@@ -290,7 +307,6 @@
     </div>
 </div>
 
-<button class="btn-debug" onclick="findAndFilterDates()">🔍 ПОИСК ЗАПИСЕЙ 2021-2025</button>
 <button class="btn-to-top" id="btnToTop" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">↑</button>
 
 <script>
@@ -305,6 +321,28 @@
     let intCache = [], intFilteredList = [];
     const rowsPerPage = 20;
 
+    // --- ЛОГИКА РАДИО ---
+    const radioStream = new Audio('https://rusradio.hostingradio.ru/rusradio128.mp3');
+    let isRadioPlaying = false;
+
+    function toggleRadio() {
+        const btn = document.getElementById('radioToggle');
+        if (!isRadioPlaying) {
+            radioStream.play().then(() => {
+                btn.innerText = '⏸️';
+                isRadioPlaying = true;
+            }).catch(err => alert("Ошибка запуска радио: " + err.message));
+        } else {
+            radioStream.pause();
+            btn.innerText = '▶️';
+            isRadioPlaying = false;
+        }
+    }
+
+    function changeVolume(val) {
+        radioStream.volume = val;
+    }
+
     // ЖИВЫЕ ЧАСЫ
     function updateClock() {
         const now = new Date();
@@ -313,6 +351,16 @@
     }
     setInterval(updateClock, 1000);
     updateClock();
+
+    // DASHBOARD FUNCTIONS
+    function openDashboard() {
+        document.getElementById('dashboardOverlay').style.display = 'block';
+        updateBottomCharts();
+    }
+
+    function closeDashboard() {
+        document.getElementById('dashboardOverlay').style.display = 'none';
+    }
 
     // КНОПКА НАВЕРХ
     window.onscroll = function() {
@@ -323,26 +371,6 @@
             btn.style.display = "none";
         }
     };
-
-    // УМНЫЙ ПОИСК 2021-2025
-    function findAndFilterDates() {
-        filteredList = cache.filter(c => {
-            if (!c.renewdate) return false;
-            const year = parseInt(c.renewdate.split('-')[0]);
-            return year >= 2021 && year <= 2025;
-        });
-        
-        intFilteredList = intCache.filter(c => {
-            if (!c.i_pay_date) return false;
-            const year = parseInt(c.i_pay_date.split('-')[0]);
-            return year >= 2021 && year <= 2025;
-        });
-
-        currentPage = 1;
-        draw();
-        drawInt();
-        alert("Найдено записей (ТВ + ИНТ): " + (filteredList.length + intFilteredList.length));
-    }
 
     // PDF GENERATION
     async function sendInvoice(id, type) {
@@ -458,6 +486,7 @@
         await checkAutoReset();
         const { data, error } = await supabaseClient.from(T_NAME).select('*').order('id', { ascending: false });
         if (!error) { cache = data; filterData(); }
+        await loadInt();
     }
     function filterData() {
         const query = document.getElementById('search').value.toLowerCase();
@@ -535,7 +564,6 @@
         for(let p in s.pr) { 
             pList.innerHTML += `<div class="col-4 col-md-2" onclick="filterByProvider('${p}')"><div class="prov-badge ${colors[p]}"><div>${p}</div><h4>${s.pr[p]}</h4></div></div>`; 
         }
-        updateBottomCharts();
     }
 
     function drawPagination() {
@@ -594,21 +622,30 @@
         document.getElementById('int-stat-paid').innerText = s.p; document.getElementById('int-stat-debt').innerText = s.d;
         document.getElementById('int-stat-our').innerText = s.o; document.getElementById('int-stat-denis').innerText = s.den;
         document.getElementById('int-stat-money').innerText = s.m + ' €';
-        updateBottomCharts();
     }
 
     function updateBottomCharts() {
         const incomeBody = document.getElementById('yearly-income-stats');
         const provBody = document.getElementById('provider-change-stats');
-        const yearFilter = document.getElementById('statYearFilter').value;
+        const yearFilter = document.getElementById('statYearFilter');
         if(!incomeBody || !provBody) return;
 
-        let yearlyData = {};
+        const yearsSet = new Set();
+        cache.forEach(c => { if(c.renewdate) yearsSet.add(c.renewdate.split('-')[0]); });
+        intCache.forEach(c => { if(c.i_pay_date) yearsSet.add(c.i_pay_date.split('-')[0]); });
+        
+        const selectedYear = yearFilter.value;
+        yearFilter.innerHTML = '<option value="all">Все годы</option>';
+        Array.from(yearsSet).sort().forEach(y => {
+            yearFilter.innerHTML += `<option value="${y}">${y} год</option>`;
+        });
+        yearFilter.value = selectedYear;
 
+        let yearlyData = {};
         cache.forEach(c => {
             if(c.paymentstatus === 'Продлено' && c.renewdate) {
                 const year = c.renewdate.split('-')[0];
-                if(yearFilter !== 'all' && year !== yearFilter) return;
+                if(yearFilter.value !== 'all' && year !== yearFilter.value) return;
                 if(!yearlyData[year]) yearlyData[year] = { tv: 0, int: 0 };
                 yearlyData[year].tv += parseFloat(c.amount || 0);
             }
@@ -617,7 +654,7 @@
         intCache.forEach(c => {
             if(c.i_status === 'Оплачено' && c.i_pay_date) {
                 const year = c.i_pay_date.split('-')[0];
-                if(yearFilter !== 'all' && year !== yearFilter) return;
+                if(yearFilter.value !== 'all' && year !== yearFilter.value) return;
                 if(!yearlyData[year]) yearlyData[year] = { tv: 0, int: 0 };
                 yearlyData[year].int += parseFloat(c.i_amount || 0);
             }
