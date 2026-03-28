@@ -607,5 +607,129 @@
     document.getElementById('intSearch').oninput = filterInt;
 
 </script>
+    <!-- Вставьте этот блок ПЕРЕД закрывающим тегом </body> -->
+
+<div class="container-fluid px-3 mt-5">
+    <div class="form-container" style="background: var(--card-bg); border: 1px solid #2c3b4a;">
+        <h5 class="text-white mb-4">📊 Аналитика и годовая статистика</h5>
+        
+        <div class="row">
+            <!-- Таблица доходов по годам -->
+            <div class="col-md-6 mb-4">
+                <div class="p-3 rounded-3" style="background: rgba(0,0,0,0.2); border: 1px solid #2c3b4a;">
+                    <h6 class="text-primary border-bottom border-secondary pb-2">Доход по годам (Оплачено)</h6>
+                    <table class="table table-borderless text-white mt-3">
+                        <thead>
+                            <tr class="small text-muted">
+                                <th>Год</th>
+                                <th>ТВ</th>
+                                <th>Интернет</th>
+                                <th>Итого</th>
+                            </tr>
+                        </thead>
+                        <tbody id="yearly-income-stats">
+                            <!-- Заполняется автоматически через JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Статистика изменения количества клиентов -->
+            <div class="col-md-6 mb-4">
+                <div class="p-3 rounded-3" style="background: rgba(0,0,0,0.2); border: 1px solid #2c3b4a;">
+                    <h6 class="text-success border-bottom border-secondary pb-2">Клиенты провайдеров (Динамика)</h6>
+                    <div id="provider-change-stats" class="mt-3">
+                        <!-- Заполняется автоматически через JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Добавьте этот код в конец вашего блока <script>, перед закрывающим </script>
+
+    // Функция для обновления нижней статистики
+    function updateBottomCharts() {
+        const incomeBody = document.getElementById('yearly-income-stats');
+        const provBody = document.getElementById('provider-change-stats');
+        
+        // 1. Расчет доходов по годам
+        let yearlyData = {};
+
+        // Из ТВ кэша
+        cache.forEach(c => {
+            if(c.paymentstatus === 'Продлено' && c.renewdate) {
+                const year = c.renewdate.split('-')[0];
+                if(!yearlyData[year]) yearlyData[year] = { tv: 0, int: 0 };
+                yearlyData[year].tv += parseFloat(c.amount || 0);
+            }
+        });
+
+        // Из Интернет кэша
+        intCache.forEach(c => {
+            if(c.i_status === 'Оплачено' && c.i_pay_date) {
+                const year = c.i_pay_date.split('-')[0];
+                if(!yearlyData[year]) yearlyData[year] = { tv: 0, int: 0 };
+                yearlyData[year].int += parseFloat(c.i_amount || 0);
+            }
+        });
+
+        incomeBody.innerHTML = '';
+        const sortedYears = Object.keys(yearlyData).sort((a,b) => b-a);
+        
+        if(sortedYears.length === 0) {
+            incomeBody.innerHTML = '<tr><td colspan="4" class="text-center small text-muted">Нет данных для расчета</td></tr>';
+        }
+
+        sortedYears.forEach(y => {
+            const total = yearlyData[y].tv + yearlyData[y].int;
+            incomeBody.innerHTML += `
+                <tr>
+                    <td><span class="badge bg-primary">${y}</span></td>
+                    <td>${yearlyData[y].tv.toFixed(2)} €</td>
+                    <td>${yearlyData[y].int.toFixed(2)} €</td>
+                    <td class="fw-bold text-warning">${total.toFixed(2)} €</td>
+                </tr>
+            `;
+        });
+
+        // 2. Расчет провайдеров (Количество клиентов)
+        provBody.innerHTML = '';
+        let provCounts = {};
+        cache.forEach(c => {
+            provCounts[c.provider] = (provCounts[c.provider] || 0) + 1;
+        });
+
+        for(let p in provCounts) {
+            const percentage = ((provCounts[p] / cache.length) * 100).toFixed(1);
+            provBody.innerHTML += `
+                <div class="mb-2">
+                    <div class="d-flex justify-content-between small mb-1">
+                        <span>${p}</span>
+                        <span>${provCounts[p]} чел. (${percentage}%)</span>
+                    </div>
+                    <div class="progress" style="height: 6px; background: #2c3b4a;">
+                        <div class="progress-bar bg-info" style="width: ${percentage}%"></div>
+                    </div>
+                </div>
+            `;
+        }
+    }
+
+    // Модифицируем существующие функции, чтобы они вызывали обновление низа
+    const originalUpdateStats = updateStats;
+    updateStats = function() {
+        originalUpdateStats();
+        updateBottomCharts();
+    };
+
+    const originalDrawInt = drawInt;
+    drawInt = function() {
+        originalDrawInt();
+        updateBottomCharts();
+    };
+</script>
 </body>
 </html>
