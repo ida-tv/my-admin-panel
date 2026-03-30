@@ -31,14 +31,29 @@
         .profile-card { background: #fff; padding: 20px; border-radius: 16px; border: 1px solid var(--border-color); margin-bottom: 20px; }
         .info-label { font-size: 11px; color: var(--text-secondary); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 4px; }
 
+        .invoice-card { border: 2px solid var(--primary); border-radius: 18px; margin-top: 10px; background: var(--white); overflow: hidden; animation: fadeIn 0.5s ease; }
+        .invoice-header { background: #fbfbfd; border-bottom: 1px solid var(--border-color); padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; }
+        .invoice-body { padding: 20px; }
+        .bank-details { background: #f5f5f7; border-radius: 12px; padding: 15px; margin-top: 10px; }
+        .iban-code { font-family: monospace; font-size: 16px; font-weight: 700; color: var(--primary); display: block; margin: 5px 0; letter-spacing: 1px; }
+        .ref-tag { font-weight: 800; color: #000; background: #fff; padding: 4px 10px; border-radius: 6px; border: 1.5px solid var(--primary); display: inline-block; margin-top: 5px; }
+
         .active-card { border: 1px solid #c6e1c6; border-radius: 16px; padding: 25px; background: #f9fff9; margin-top: 10px; }
         code { display: block; background: #1d1d1f; color: #fff; padding: 12px; border-radius: 10px; word-break: break-all; font-size: 12px; margin: 10px 0; cursor: pointer; }
 
-        .action-btn { background: var(--white); border: 1px solid var(--primary); color: var(--primary); padding: 10px; border-radius: 10px; font-weight: 600; cursor: pointer; width: 100%; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 13px; transition: 0.2s; text-decoration: none; }
+        .action-btn { background: var(--white); border: 1px solid var(--primary); color: var(--primary); padding: 10px; border-radius: 10px; font-weight: 600; cursor: pointer; width: 100%; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 13px; transition: 0.2s; }
         .action-btn:hover { background: var(--primary); color: white; }
         
-        .download-btn { background: var(--success); color: white !important; border: none; padding: 8px 15px; border-radius: 10px; font-size: 12px; font-weight: 700; cursor: pointer; margin-top: 5px; display: inline-flex; align-items: center; gap: 8px; transition: 0.2s; text-decoration: none; }
-        .download-btn:hover { opacity: 0.9; transform: scale(1.02); }
+        .support-card { border: none; border-radius: 20px; padding: 0; background: #ffffff; margin-top: 25px; box-shadow: 0 10px 25px rgba(0,122,255,0.1); overflow: hidden; }
+        .support-header { background: var(--primary); padding: 15px 20px; color: white; display: flex; align-items: center; gap: 12px; }
+        .support-header h3 { margin: 0; font-size: 16px; font-weight: 600; }
+        .support-content { padding: 20px; }
+        .support-textarea { width: 100%; height: 100px; border-radius: 12px; border: 1px solid #e5e5e7; padding: 12px; font-family: inherit; font-size: 14px; resize: none; box-sizing: border-box; background: #fbfdfd; transition: 0.3s; }
+        .support-textarea:focus { outline: none; border-color: var(--primary); background: #fff; }
+
+        .btn-send { width: 100%; background: var(--primary); color: white; border: none; padding: 14px; border-radius: 12px; font-weight: 700; cursor: pointer; margin-top: 10px; transition: 0.2s; }
+        .btn-send:hover { background: #0056b3; }
+        .btn-logout { width: 100%; background: none; color: #ff3b30; border: none; padding: 15px; cursor: pointer; font-weight: 600; margin-top: 10px; }
 
         .edit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
         .edit-grid input { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; font-size: 13px; }
@@ -74,11 +89,41 @@
                 <input type="text" id="editCity" placeholder="Город">
             </div>
             <input type="text" id="editAddress" placeholder="Адрес" style="width:100%; padding:10px; margin-bottom:8px; border-radius:8px; border:1px solid #ccc; box-sizing: border-box;">
-            <button class="action-btn" style="width:100%; background:var(--primary); color:white;" onclick="updateUserData()">Сохранить изменения</button>
+            <button class="btn-send" style="padding:10px;" onclick="updateUserData()">Сохранить изменения</button>
         </div>
     </div>
 
     <div id="statusDiv" class="status-badge waiting">Загрузка данных...</div>
+
+    <div id="paymentSection" style="display:none;">
+        <div class="invoice-card">
+            <div class="invoice-header">
+                <span style="font-weight: 800; color: var(--primary);">СЧЕТ НА ОПЛАТУ</span>
+                <span id="billNr" style="font-weight: 700;"></span>
+            </div>
+            <div class="invoice-body">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <span class="info-label">Сумма к оплате:</span>
+                    <span style="font-size: 26px; font-weight: 800; color: #1d1d1f;"><span id="billPrice">0</span> €</span>
+                </div>
+                
+                <div class="bank-details">
+                    <span class="info-label">Получатель (Saaja):</span>
+                    <strong style="font-size: 15px;">Artjom Fjodorov</strong>
+                    <span class="info-label" style="margin-top: 10px;">Банк (Pank):</span>
+                    <strong>LHV Pank (LHVBEE22)</strong>
+                    <span class="info-label" style="margin-top: 10px;">Счёт (IBAN):</span>
+                    <span class="iban-code">EE55 7700 7710 0977 1245</span>
+                    <span class="info-label" style="margin-top: 10px; color: #d32f2f;">Пояснение (Selgitus):</span>
+                    <span class="ref-tag">Arve nr: <span id="billRef"></span></span>
+                </div>
+
+                <div style="font-size: 11px; color: var(--text-secondary); text-align: center; margin-top: 15px;">
+                    Оплатить до: <strong id="billExpiry"></strong>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <div id="activeSection" style="display:none;" class="active-card">
         <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -97,7 +142,28 @@
         </div>
     </div>
 
-    <button class="btn-logout" onclick="logout()" style="width:100%; border:none; background:none; color:red; cursor:pointer; font-weight:700; padding:15px;">Выйти</button>
+    <div id="supportBox" class="support-card">
+        <div id="supportForm">
+            <div class="support-header">
+                <i class="fas fa-headset"></i>
+                <h3>Связь с администрацией</h3>
+            </div>
+            <div class="support-content">
+                <textarea id="supportText" class="support-textarea" placeholder="Опишите ваш вопрос..."></textarea>
+                <button id="supportBtn" class="btn-send" onclick="sendToTelegram('MESSAGE')">
+                    <i class="fas fa-paper-plane"></i> Отправить в Telegram
+                </button>
+            </div>
+        </div>
+        <div id="supportSuccess" style="display: none; text-align: center; padding: 30px;">
+            <i class="fas fa-check-circle" style="color: var(--success); font-size: 40px; margin-bottom: 10px;"></i>
+            <p style="font-size: 16px; font-weight: 600;">Сообщение доставлено!</p>
+            <p style="color: var(--text-secondary);">Мы скоро ответим. <br><strong>Info IDA TV</strong></p>
+            <button onclick="resetSupport()" style="background: none; border: none; color: var(--primary); cursor: pointer; margin-top: 15px; font-weight: 600;">Написать еще раз</button>
+        </div>
+    </div>
+
+    <button class="btn-logout" onclick="logout()">Выйти</button>
 </div>
 
 <script type="module">
@@ -125,7 +191,7 @@
                 if (docSnap.exists()) {
                     currentData = docSnap.data();
                     renderUI(currentData);
-                    updateGlobalNotice(); // Вызов при каждом обновлении юзера
+                    updateGlobalNotice();
                 }
             });
 
@@ -142,14 +208,15 @@
         const box = document.getElementById('globalNotice');
         const txt = document.getElementById('noticeText');
         
-        const pMsg = (currentData && currentData.comment) ? currentData.comment.trim() : "";
-        const bMsg = (globalBroadcastMessage) ? globalBroadcastMessage.trim() : "";
-        
-        const finalMsg = pMsg !== "" ? pMsg : bMsg;
+        const personalMsg = (currentData.comment || "").trim();
+        const broadcastMsg = (globalBroadcastMessage || "").trim();
 
-        if (finalMsg && finalMsg.length > 0) {
+        // Личное сообщение из базы (comment) имеет приоритет перед рассылкой
+        const messageToShow = personalMsg !== "" ? personalMsg : broadcastMsg;
+
+        if (messageToShow !== "") {
             box.style.display = 'block';
-            txt.innerText = finalMsg;
+            txt.innerText = messageToShow;
         } else {
             box.style.display = 'none';
             txt.innerText = "";
@@ -169,10 +236,11 @@
         document.getElementById('editAddress').value = data.address || '';
 
         const sDiv = document.getElementById('statusDiv');
+        const pSec = document.getElementById('paymentSection');
         const aSec = document.getElementById('activeSection');
         
+        pSec.style.display = 'none';
         aSec.style.display = 'none';
-        sDiv.style.display = 'block';
 
         if (data.status === 'approved') {
             sDiv.style.display = 'none';
@@ -182,27 +250,42 @@
             const playlistContainer = document.getElementById('playlistContainer');
             playlistContainer.innerHTML = '';
             if (data.playlist) {
-                data.playlist.split('|').forEach((item, index) => {
+                const items = data.playlist.split('|');
+                items.forEach(item => {
                     const parts = item.split(':');
-                    const name = parts.length > 1 ? parts[0].trim() : "Плейлист " + (index + 1);
-                    const url = parts.length > 1 ? parts.slice(1).join(':').trim() : item.trim();
-                    
+                    let name = "Ваш плейлист";
+                    let url = item.trim();
+                    if (parts.length > 1) {
+                        name = parts[0].trim();
+                        url = parts.slice(1).join(':').trim();
+                    }
                     playlistContainer.innerHTML += `
-                        <div style="margin-bottom: 15px; background: rgba(0,0,0,0.03); padding: 12px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.05);">
+                        <div style="margin-bottom: 12px;">
                             <span class="info-label" style="color: var(--primary);">${name}:</span>
                             <code onclick="copyToClipboard('${url}')">${url}</code>
-                            <a href="${url}" target="_blank" class="download-btn">
-                                <i class="fas fa-external-link-alt"></i> Открыть / Скачать
-                            </a>
-                        </div>`;
+                        </div>
+                    `;
                 });
             }
 
             const manualCont = document.getElementById('manualBtnContainer');
-            manualCont.innerHTML = data.manual ? `<a href="${data.manual}" target="_blank" class="download-btn" style="background:var(--primary); margin:0;"><i class="fas fa-book"></i> Инструкция</a>` : '';
-        } else {
-            sDiv.innerText = data.status === 'pending_payment' ? "💳 ОЖИДАНИЕ ОПЛАТЫ" : "⏳ НА ПРОВЕРКЕ";
-            sDiv.className = "status-badge " + (data.status === 'pending_payment' ? "pending_payment" : "waiting");
+            if (data.manual) {
+                manualCont.innerHTML = `<a href="${data.manual}" target="_blank" class="action-btn" style="margin:0; padding: 5px 12px; background: var(--success); border:none; color:white;"><i class="fas fa-book"></i> Инструкция</a>`;
+            } else { manualCont.innerHTML = ''; }
+        } 
+        else if (data.status === 'pending_payment') {
+            sDiv.innerText = "💳 ОЖИДАНИЕ ОПЛАТЫ";
+            sDiv.className = "status-badge pending_payment";
+            pSec.style.display = 'block';
+            
+            document.getElementById('billNr').innerText = `№ ${data.arveNr || '---'}`;
+            document.getElementById('billRef').innerText = data.arveNr || '---';
+            document.getElementById('billPrice').innerText = data.price || '0';
+            document.getElementById('billExpiry').innerText = data.expiry || '---';
+        } 
+        else {
+            sDiv.innerText = "⏳ ЗАЯВКА НА РАССМОТРЕНИИ";
+            sDiv.className = "status-badge waiting";
         }
     }
 
@@ -212,7 +295,7 @@
     };
 
     window.updateUserData = async () => {
-        const up = {
+        const updateObj = {
             fname: document.getElementById('editFname').value,
             lname: document.getElementById('editLname').value,
             phone: document.getElementById('editPhone').value,
@@ -220,17 +303,63 @@
             address: document.getElementById('editAddress').value
         };
         try {
-            await updateDoc(doc(db, "users", auth.currentUser.uid), up);
-            alert("Обновлено!");
+            await updateDoc(doc(db, "users", auth.currentUser.uid), updateObj);
+            alert("Данные профиля обновлены!");
             window.toggleEditForm();
-        } catch (e) { alert("Ошибка сохранения."); }
+        } catch (e) { 
+            console.error(e);
+            alert("Ошибка сохранения."); 
+        }
     };
 
     window.copyToClipboard = (text) => {
-        navigator.clipboard.writeText(text).then(() => alert("Ссылка скопирована"));
+        navigator.clipboard.writeText(text).then(() => {
+            alert("Ссылка скопирована");
+        });
     };
 
-    window.logout = () => signOut(auth).then(() => window.location.href = 'login.html');
+    window.requestUpdate = (type) => {
+        const label = type === 'PLAYLIST' ? 'ОБНОВЛЕНИЕ ПЛЕЙЛИСТА' : 'СМЕНУ СЕРВЕРА';
+        if(confirm(`Запросить ${label}?`)) {
+            window.sendToTelegram(type, `🚨 Запрос: ${label}`);
+        }
+    };
+
+    window.sendToTelegram = async (type, msg) => {
+        const botToken = "8544750089:AAHswx71xxvAMp4RyFELZuOY0Vyr9Ywds8A";
+        const chatId = "1084236547";
+        const textarea = document.getElementById('supportText');
+        let text = (type === 'MESSAGE') ? textarea.value : msg;
+        if (!text || text.trim() === "") return alert("Введите текст.");
+
+        const info = `🆔 [${type}]\n👤 Клиент: ${currentData.fname || ""} ${currentData.lname || ""}\n📞 Тел: ${currentData.phone || ""}\n📍 Адрес: ${currentData.city || ""}, ${currentData.address || ""}\n\n💬 Текст: ${text}`;
+
+        try {
+            const res = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ chat_id: chatId, text: info })
+            });
+            if (res.ok) {
+                if (type === 'MESSAGE') {
+                    document.getElementById('supportForm').style.display = 'none';
+                    document.getElementById('supportSuccess').style.display = 'block';
+                    textarea.value = "";
+                } else {
+                    alert("Отправлено!");
+                }
+            }
+        } catch (e) { console.error(e); }
+    };
+
+    window.resetSupport = () => {
+        document.getElementById('supportForm').style.display = 'block';
+        document.getElementById('supportSuccess').style.display = 'none';
+    };
+
+    window.logout = () => {
+        signOut(auth).then(() => window.location.href = 'login.html');
+    };
 </script>
 </body>
 </html>
