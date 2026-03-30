@@ -44,9 +44,8 @@
         .action-btn { background: var(--white); border: 1px solid var(--primary); color: var(--primary); padding: 10px; border-radius: 10px; font-weight: 600; cursor: pointer; width: 100%; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 13px; transition: 0.2s; }
         .action-btn:hover { background: var(--primary); color: white; }
         
-        /* КНОПКА СКАЧИВАНИЯ */
-        .download-btn { background: var(--success); color: white; border: none; padding: 6px 12px; border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer; margin-top: 5px; display: inline-flex; align-items: center; gap: 6px; transition: 0.2s; }
-        .download-btn:hover { opacity: 0.8; }
+        .download-btn { background: var(--success); color: white; border: none; padding: 8px 15px; border-radius: 10px; font-size: 12px; font-weight: 700; cursor: pointer; margin-top: 5px; display: inline-flex; align-items: center; gap: 8px; transition: 0.2s; text-decoration: none; }
+        .download-btn:hover { opacity: 0.9; transform: scale(1.02); }
 
         .support-card { border: none; border-radius: 20px; padding: 0; background: #ffffff; margin-top: 25px; box-shadow: 0 10px 25px rgba(0,122,255,0.1); overflow: hidden; }
         .support-header { background: var(--primary); padding: 15px 20px; color: white; display: flex; align-items: center; gap: 12px; }
@@ -212,11 +211,11 @@
         const txt = document.getElementById('noticeText');
         const pMsg = (currentData && currentData.comment) ? currentData.comment.trim() : "";
         const bMsg = globalBroadcastMessage ? globalBroadcastMessage.trim() : "";
-        const msg = pMsg !== "" ? pMsg : bMsg;
+        const finalMsg = pMsg !== "" ? pMsg : bMsg;
 
-        if (msg !== "") {
+        if (finalMsg !== "") {
             box.style.display = 'block';
-            txt.innerText = msg;
+            txt.innerText = finalMsg;
         } else {
             box.style.display = 'none';
             txt.innerText = "";
@@ -263,12 +262,12 @@
                         url = parts.slice(1).join(':').trim();
                     }
                     playlistContainer.innerHTML += `
-                        <div style="margin-bottom: 15px; background: rgba(0,0,0,0.03); padding: 10px; border-radius: 12px;">
+                        <div style="margin-bottom: 15px; background: rgba(0,0,0,0.03); padding: 12px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.05);">
                             <span class="info-label" style="color: var(--primary);">${name}:</span>
                             <code onclick="copyToClipboard('${url}')">${url}</code>
-                            <button class="download-btn" onclick="downloadM3U('${url}', '${name}')">
-                                <i class="fas fa-file-download"></i> Скачать M3U файл
-                            </button>
+                            <a href="${url}" target="_blank" class="download-btn">
+                                <i class="fas fa-external-link-alt"></i> Открыть / Скачать файл
+                            </a>
                         </div>
                     `;
                 });
@@ -293,25 +292,6 @@
             sDiv.className = "status-badge waiting";
         }
     }
-
-    window.downloadM3U = async (url, name) => {
-        try {
-            const response = await fetch(url);
-            const blob = await response.blob();
-            const downloadUrl = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.style.display = 'none';
-            a.href = downloadUrl;
-            a.download = `${name.replace(/\s+/g, '_')}.m3u`;
-            document.body.appendChild(a);
-            a.click();
-            window.URL.revokeObjectURL(downloadUrl);
-            document.body.removeChild(a);
-        } catch (e) {
-            alert("Не удалось скачать файл напрямую. Попробуйте скопировать ссылку.");
-            console.error(e);
-        }
-    };
 
     window.toggleEditForm = () => {
         const f = document.getElementById('editForm');
