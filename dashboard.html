@@ -13,6 +13,7 @@
             --bg-body: #f5f7f9;
             --white: #ffffff;
             --border-color: #d2d2d7;
+            --success: #2e7d32;
         }
 
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg-body); padding: 20px; display: flex; justify-content: center; color: var(--text-main); }
@@ -26,7 +27,7 @@
         .status-badge { padding: 12px 20px; border-radius: 12px; font-weight: 600; text-align: center; margin-bottom: 30px; font-size: 15px; }
         .waiting { background: #f5f5f7; color: #86868b; }
         .pending_payment { background: #eaf2ff; color: var(--primary); }
-        .approved { background: #e8f5e9; color: #2e7d32; }
+        .approved { background: #e8f5e9; color: var(--success); }
 
         .invoice-card { border: 1px solid var(--border-color); border-radius: 16px; margin-top: 20px; background: var(--white); overflow: hidden; }
         .invoice-header { background: #fbfbfd; border-bottom: 1px solid var(--border-color); padding: 20px; display: flex; justify-content: space-between; align-items: center; }
@@ -43,11 +44,21 @@
 
         .bank-details { background: #f5f5f7; border-radius: 12px; padding: 20px; }
         .iban-code { font-family: "SF Mono", "Menlo", monospace; font-size: 17px; font-weight: 700; color: var(--primary); display: block; margin: 8px 0; }
-        .ref-tag { color: var(--text-main); font-weight: 700; background: #white; padding: 4px 8px; border-radius: 6px; border: 1px solid var(--border-color); }
+        .ref-tag { color: var(--text-main); font-weight: 700; background: #fff; padding: 4px 8px; border-radius: 6px; border: 1px solid var(--border-color); }
 
         .active-card { border: 1px solid #c6e1c6; border-radius: 16px; padding: 30px; background: #f9fff9; margin-top: 20px; }
         code { display: block; background: #1d1d1f; color: #fff; padding: 16px; border-radius: 12px; word-break: break-all; font-size: 13px; line-height: 1.6; margin: 15px 0; }
         
+        /* СТИЛИ ОБРАТНОЙ СВЯЗИ */
+        .support-card { border: 1px solid var(--primary); border-radius: 16px; padding: 25px; background: #f0f7ff; margin-top: 20px; }
+        .support-textarea { width: 100%; height: 80px; border-radius: 12px; border: 1px solid var(--border-color); padding: 12px; font-family: inherit; font-size: 14px; resize: none; box-sizing: border-box; margin: 10px 0; }
+        .btn-send { width: 100%; background: var(--primary); color: white; border: none; padding: 12px; border-radius: 10px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .btn-send:disabled { background: #ccc; cursor: not-allowed; }
+
+        /* ОКНО УСПЕХА */
+        .success-overlay { text-align: center; padding: 10px; animation: fadeIn 0.5s ease; }
+        .success-overlay i { font-size: 40px; color: var(--success); margin-bottom: 10px; }
+
         .btn-logout { width: 100%; background: none; color: #ff3b30; border: none; padding: 15px; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 20px; transition: 0.2s; }
         .btn-logout:hover { opacity: 0.7; }
 
@@ -130,7 +141,6 @@
         <p class="info-label">Ваш персональный плейлист</p>
         <code id="playlistUrl"></code>
         
-        <!-- Обертка для инструкции, скрыта по умолчанию -->
         <div id="manualWrapper" style="display: none; border-top: 1px solid #e1eee1; padding-top: 20px; margin-top: 20px;">
              <a id="manualLink" href="#" target="_blank" style="display: block; text-align: center; color: var(--primary); font-weight: 600; text-decoration: none; font-size: 14px;">Инструкция по настройке →</a>
         </div>
@@ -138,6 +148,23 @@
         <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid #e1eee1;">
             <span class="info-label" style="margin: 0;">Срок действия</span>
             <span style="font-weight: 700; color: #2e7d32;" id="expDate"></span>
+        </div>
+    </div>
+
+    <!-- НОВЫЙ БЛОК: ОБРАТНАЯ СВЯЗЬ -->
+    <div id="supportBox" class="support-card">
+        <div id="supportForm">
+            <h3 style="color: var(--primary); margin-top: 0; font-size: 18px;"><i class="fas fa-paper-plane"></i> Написать нам</h3>
+            <p class="info-label" style="margin-bottom: 0;">Есть вопросы? Мы на связи!</p>
+            <textarea id="supportText" class="support-textarea" placeholder="Напишите ваш вопрос или сообщение..."></textarea>
+            <button id="supportBtn" class="btn-send" onclick="sendToTelegram()">Отправить в поддержку</button>
+        </div>
+        <!-- ОКНО ОТВЕТА (УСПЕХ) -->
+        <div id="supportSuccess" class="success-overlay" style="display: none;">
+            <i class="fas fa-check-circle"></i>
+            <h4 style="margin: 5px 0;">Ваше сообщение отправлено!</h4>
+            <p style="font-size: 13px; color: var(--text-secondary);">Скоро мы его рассмотрим и ответим вам.<br><strong>Info IDA TV</strong></p>
+            <button onclick="resetSupport()" style="background: none; border: none; color: var(--primary); cursor: pointer; font-size: 12px; margin-top: 10px;">Отправить ещё одно</button>
         </div>
     </div>
 
@@ -185,8 +212,7 @@
                     const pSec = document.getElementById('paymentSection');
                     const aSec = document.getElementById('activeSection');
                     
-                    pSec.style.display = 'none'; 
-                    aSec.style.display = 'none';
+                    pSec.style.display = 'none'; aSec.style.display = 'none';
 
                     if (data.status === 'waiting') {
                         sDiv.innerText = "Заявка на рассмотрении";
@@ -210,7 +236,6 @@
                         document.getElementById('playlistUrl').innerText = data.playlist || 'Ссылка создается...';
                         document.getElementById('expDate').innerText = data.expiry || 'Без лимита';
 
-                        // Логика отображения инструкции
                         const manualWrapper = document.getElementById('manualWrapper');
                         const manualLink = document.getElementById('manualLink');
                         if (data.manual && data.manual.trim() !== "" && data.manual !== "#") {
@@ -224,6 +249,50 @@
             });
         } else { window.location.href = 'login.html'; }
     });
+
+    // Функция отправки сообщения в Telegram
+    window.sendToTelegram = async () => {
+        const text = document.getElementById('supportText').value;
+        const btn = document.getElementById('supportBtn');
+        if (!text.trim()) return alert("Введите сообщение!");
+
+        const name = document.getElementById('clientFullName').innerText;
+        const address = document.getElementById('clientAddress').innerText;
+        const email = auth.currentUser ? auth.currentUser.email : 'Неизвестно';
+
+        const botToken = "8544750089:AAHswx71xxvAMp4RyFELZuOY0Vyr9Ywds8A";
+        const chatId = "1084236547";
+        const fullMsg = `📩 НОВОЕ СООБЩЕНИЕ ИЗ КАБИНЕТА:\n\n👤 Клиент: ${name}\n📧 Почта: ${email}\n📍 Адрес: ${address}\n\n💬 Текст: ${text}`;
+
+        btn.disabled = true;
+        btn.innerText = "Отправка...";
+
+        try {
+            const res = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ chat_id: chatId, text: fullMsg })
+            });
+
+            if (res.ok) {
+                document.getElementById('supportForm').style.display = 'none';
+                document.getElementById('supportSuccess').style.display = 'block';
+            } else {
+                alert("Ошибка отправки. Попробуйте еще раз.");
+            }
+        } catch (e) {
+            alert("Ошибка сети.");
+        } finally {
+            btn.disabled = false;
+            btn.innerText = "Отправить в поддержку";
+        }
+    };
+
+    window.resetSupport = () => {
+        document.getElementById('supportText').value = "";
+        document.getElementById('supportForm').style.display = 'block';
+        document.getElementById('supportSuccess').style.display = 'none';
+    };
 
     window.logout = () => signOut(auth).then(() => window.location.href = 'login.html');
 </script>
