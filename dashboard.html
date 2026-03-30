@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Мой кабинет - IDA TV</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; padding: 20px; display: flex; justify-content: center; }
+        .container { max-width: 650px; width: 100%; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        
+        h2 { text-align: center; color: #333; margin-bottom: 20px; }
+        
+        /* СТИЛЬ УВЕДОМЛЕНИЙ */
+        .global-notice { 
+            display: none; 
+            background: #fff9c4; 
+            border-left: 6px solid #fbc02d; 
+            padding: 15px; 
+            border-radius: 8px; 
+            margin-bottom: 25px; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            animation: slideIn 0.5s ease;
+        }
+        .notice-title { font-weight: bold; color: #856404; margin-bottom: 5px; display: flex; align-items: center; }
+        .notice-text { color: #333; line-height: 1.5; font-size: 15px; }
+
+        /* СТАТУСЫ */
+        .status-badge { padding: 12px; border-radius: 50px; font-weight: bold; text-align: center; margin-bottom: 30px; font-size: 16px; }
+        .waiting { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+        .pending_payment { background: #e0f0ff; color: #0056b3; border: 1px solid #b6d4fe; }
+        .approved { background: #d1e7dd; color: #0f5132; border: 1px solid #badbcc; }
+
+        /* --- ОБНОВЛЕННЫЙ КРУПНЫЙ СЧЕТ --- */
+        .invoice-card { 
+            border: 3px solid #007bff; 
+            border-radius: 20px; 
+            overflow: hidden; 
+            margin-top: 20px; 
+            background: #fff;
+            box-shadow: 0 15px 35px rgba(0,123,255,0.15);
+        }
+        .invoice-header { 
+            background: #007bff; 
+            color: white; 
+            padding: 20px; 
+            text-align: center; 
+        }
+        .invoice-header h3 { 
+            margin: 0; 
+            font-size: 24px; 
+            letter-spacing: 2px; 
+            text-transform: uppercase;
+        }
+        .invoice-body { padding: 30px; }
+        .invoice-row { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+            padding: 15px 0; 
+            border-bottom: 2px dashed #f0f0f0; 
+        }
+        .label { color: #666; font-size: 16px; }
+        .value-large { font-weight: 800; color: #007bff; font-size: 22px; }
+
+        .bank-details-title {
+            margin-top: 25px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .bank-details-box { 
+            background: #f8faff; 
+            border: 2px solid #e0e8f5; 
+            border-radius: 15px; 
+            padding: 20px; 
+            margin-top: 15px; 
+            font-family: 'Courier New', Courier, monospace; 
+            line-height: 1.8;
+            font-size: 16px;
+        }
+        .bank-row { margin-bottom: 5px; color: #444; }
+        .bank-row strong { color: #000; }
+        .ref-box {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #dee2e6;
+            font-size: 18px;
+        }
+        /* -------------------------------- */
+
+        /* КАРТОЧКА ДОСТУПА */
+        .active-card { border: 2px solid #28a745; border-radius: 15px; padding: 20px; background: #fafffa; margin-top: 20px; }
+        code { display: block; background: #333; color: #00ff00; padding: 15px; border-radius: 8px; word-break: break-all; margin: 10px 0; font-size: 14px; }
+        
+        .btn-logout { width: 100%; background: #6c757d; color: white; border: none; padding: 12px; border-radius: 10px; cursor: pointer; margin-top: 30px; font-weight: bold; }
+        
+        @keyframes slideIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2 id="welcomeTitle">Личный кабинет</h2>
+
+    <!-- БЛОК УВЕДОМЛЕНИЙ -->
+    <div id="globalNotice" class="global-notice">
+        <div class="notice-title">🔔 Важное сообщение:</div>
+        <div id="noticeText" class="notice-text"></div>
+    </div>
+
+    <div id="statusDiv" class="status-badge waiting">Статус: Заявка на рассмотрении 🟡</div>
+
+    <!-- БЛОК СЧЕТА (УКРУПНЕННЫЙ) -->
+    <div id="paymentSection" style="display:none;">
+        <div class="invoice-card">
+            <div class="invoice-header">
+                <h3>СЧЕТ НА ОПЛАТУ</h3>
+            </div>
+            <div class="invoice-body">
+                <div class="invoice-row">
+                    <span class="label">Номер счета:</span>
+                    <span class="value-large" id="billNr"></span>
+                </div>
+                
+                <div class="bank-details-title">
+                    🏦 Реквизиты для перевода:
+                </div>
+                
+                <div class="bank-details-box">
+                    <div class="bank-row"><strong>Получатель:</strong> Artjom Fjodorov</div>
+                    <div class="bank-row"><strong>Банк:</strong> LHV (BIC: LHVBEE22)</div>
+                    <div class="bank-row"><strong>IBAN Счёт:</strong></div>
+                    <div style="font-size: 20px; font-weight: bold; color: #000; letter-spacing: 1px; margin-bottom: 15px;">
+                        EE55 7700 7710 0977 1245
+                    </div>
+                    
+                    <div class="ref-box">
+                        <strong style="color: #0056b3;">Пояснение:</strong> 
+                        <span id="billRef" style="background: #fff3cd; padding: 2px 8px; border-radius: 4px; font-weight: bold;"></span>
+                    </div>
+                </div>
+
+                <p style="font-size: 14px; color: #888; text-align: center; margin-top: 20px; font-style: italic;">
+                    * Пожалуйста, вводите пояснение в точности как указано выше для быстрой активации.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- БЛОК АКТИВНОГО СЕРВИСА -->
+    <div id="activeSection" style="display:none;" class="active-card">
+        <h3 style="color: #28a745; margin-top: 0;">Доступ активен 🟢</h3>
+        <p class="label">Ваш плейлист / Ключ:</p>
+        <code id="playlistUrl"></code>
+        <div class="invoice-row" style="margin-top:15px;">
+            <span class="label">Инструкция:</span>
+            <span class="value"><a id="manualLink" href="#" target="_blank" style="color: #007bff;">Открыть руководство</a></span>
+        </div>
+        <div class="invoice-row">
+            <span class="label">Срок действия:</span>
+            <span class="value" id="expDate" style="color: #28a745;"></span>
+        </div>
+    </div>
+
+    <button class="btn-logout" onclick="logout()">ВЫЙТИ ИЗ АККАУНТА</button>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyAutk3dhPPtonZJ_osnwqqm1bm4Q2de4qI",
+        authDomain: "mytv-service-a212c.firebaseapp.com",
+        projectId: "mytv-service-a212c",
+        storageBucket: "mytv-service-a212c.firebasestorage.app",
+        messagingSenderId: "297453631537",
+        appId: "1:297453631537:web:90e836440825b23a173d10"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            onSnapshot(doc(db, "users", user.uid), (docSnap) => {
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    
+                    document.getElementById('welcomeTitle').innerText = "Личный кабинет: " + (data.fname || "Клиент");
+
+                    const noticeBox = document.getElementById('globalNotice');
+                    if (data.comment && data.comment.trim() !== "") {
+                        noticeBox.style.display = 'block';
+                        document.getElementById('noticeText').innerText = data.comment;
+                    } else {
+                        noticeBox.style.display = 'none';
+                    }
+
+                    const sDiv = document.getElementById('statusDiv');
+                    const pSec = document.getElementById('paymentSection');
+                    const aSec = document.getElementById('activeSection');
+                    pSec.style.display = 'none'; aSec.style.display = 'none';
+
+                    if (data.status === 'waiting') {
+                        sDiv.innerText = "Статус: Заявка на рассмотрении 🟡";
+                        sDiv.className = "status-badge waiting";
+                    } 
+                    else if (data.status === 'pending_payment') {
+                        sDiv.innerText = "Статус: Выставлен счет 🔵";
+                        sDiv.className = "status-badge pending_payment";
+                        pSec.style.display = 'block';
+                        document.getElementById('billNr').innerText = data.arveNr || '';
+                        document.getElementById('billRef').innerText = data.arveNr || '';
+                    } 
+                    else if (data.status === 'approved') {
+                        sDiv.innerText = "Статус: Сервис активен 🟢";
+                        sDiv.className = "status-badge approved";
+                        aSec.style.display = 'block';
+                        document.getElementById('playlistUrl').innerText = data.playlist || 'Ключ формируется...';
+                        document.getElementById('manualLink').href = data.manual || '#';
+                        document.getElementById('expDate').innerText = data.expiry || '-';
+                    }
+                }
+            });
+        } else { window.location.href = 'login.html'; }
+    });
+
+    window.logout = () => signOut(auth).then(() => window.location.href = 'login.html');
+</script>
+</body>
+</html>

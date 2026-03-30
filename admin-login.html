@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вход в IDA TV Admin</title>
+    <style>
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: #2c3e50; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            margin: 0; 
+        }
+        .login-box { 
+            background: white; 
+            padding: 40px; 
+            border-radius: 15px; 
+            box-shadow: 0 15px 35px rgba(0,0,0,0.4); 
+            width: 100%; 
+            max-width: 350px; 
+            text-align: center; 
+        }
+        h3 { color: #333; margin-bottom: 25px; font-size: 22px; }
+        input { 
+            width: 100%; 
+            padding: 12px; 
+            margin-bottom: 20px; 
+            border: 2px solid #ddd; 
+            border-radius: 8px; 
+            box-sizing: border-box; 
+            font-size: 16px; 
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        input:focus { border-color: #007bff; }
+        button { 
+            width: 100%; 
+            padding: 12px; 
+            background: #007bff; 
+            color: white; 
+            border: none; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            font-size: 18px; 
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+        button:hover { background: #0056b3; }
+        .error-msg { color: #e74c3c; font-size: 14px; margin-top: 10px; display: none; }
+    </style>
+</head>
+<body>
+
+    <div class="login-box">
+        <h3>Панель управления</h3>
+        <!-- Поле для ввода пароля -->
+        <input type="password" id="adminPass" placeholder="Введите пароль" onkeypress="if(event.key === 'Enter') checkPass()">
+        <button onclick="checkPass()">Войти</button>
+        <div id="error" class="error-msg">Неверный пароль!</div>
+    </div>
+
+    <script>
+        function checkPass() {
+            const passField = document.getElementById('adminPass');
+            const errorField = document.getElementById('error');
+            const pass = passField.value;
+
+            // ВАШ ПАРОЛЬ: можете изменить '@Ser82ik99bor2' на любой свой
+            if (pass === '@Ser82ik99bor2') { 
+                sessionStorage.setItem('admin_access', 'true'); // Даем разрешение
+                window.location.href = 'admin.html'; // Переходим в админку
+            } else {
+                errorField.style.display = 'block'; // Показываем ошибку
+                passField.style.borderColor = '#e74c3c';
+                passField.value = ''; // Стираем неверный пароль
+            }
+        }
+
+        // Если админ уже залогинен, перекидываем его сразу в админку
+        if (sessionStorage.getItem('admin_access') === 'true') {
+            window.location.href = 'admin.html';
+        }
+    </script>
+</body>
+</html>

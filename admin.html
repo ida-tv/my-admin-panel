@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IDA TV | Pro Admin Control</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        if (sessionStorage.getItem('admin_access') !== 'true') {
+            window.location.href = 'admin-login.html';
+        }
+    </script>
+    <style>
+        :root {
+            --accent: #007aff;
+            --bg-main: #f5f7f9;
+            --sidebar-bg: #ffffff;
+            --card-bg: #ffffff;
+            --text-dark: #1d1d1f;
+            --text-gray: #86868b;
+            --border: #e5e7eb;
+            --input-bg: #f5f6f7;
+        }
+
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+            background-color: var(--bg-main); 
+            margin: 0; 
+            display: flex;
+            color: var(--text-dark);
+        }
+
+        /* SIDEBAR */
+        .sidebar {
+            width: 260px;
+            background: var(--sidebar-bg);
+            height: 100vh;
+            position: fixed;
+            border-right: 1px solid var(--border);
+            padding: 30px 20px;
+            box-sizing: border-box;
+            z-index: 100;
+        }
+
+        .logo { font-size: 22px; font-weight: 700; margin-bottom: 40px; color: var(--text-dark); }
+        .logo span { color: var(--accent); }
+
+        .nav-link {
+            display: flex; align-items: center; gap: 12px;
+            padding: 12px 15px; color: var(--text-gray); text-decoration: none;
+            border-radius: 10px; transition: 0.2s; margin-bottom: 5px;
+            font-size: 15px;
+        }
+        .nav-link:hover, .nav-link.active { background: #f0f7ff; color: var(--accent); }
+
+        /* MAIN */
+        .main { margin-left: 260px; width: 100%; padding: 40px; box-sizing: border-box; }
+
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        #liveTime { font-size: 28px; font-weight: 700; color: var(--text-dark); }
+
+        /* СТАТИСТИКА */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+        }
+        .stat-card .label { font-size: 12px; color: var(--text-gray); font-weight: 600; text-transform: uppercase; }
+        .stat-card .value { font-size: 24px; font-weight: 700; margin-top: 5px; color: var(--accent); }
+
+        /* ПОИСК */
+        .search-box {
+            position: relative;
+            margin-bottom: 25px;
+        }
+        .search-box input {
+            width: 100%;
+            padding: 15px 20px 15px 45px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: white;
+            font-size: 15px;
+            outline: none;
+        }
+        .search-box i {
+            position: absolute;
+            left: 18px;
+            top: 18px;
+            color: var(--text-gray);
+        }
+
+        /* КАРТОЧКА КЛИЕНТА */
+        .user-card {
+            background: var(--card-bg); border-radius: 20px; padding: 20px;
+            margin-bottom: 15px; display: grid; 
+            grid-template-columns: 180px 1fr 1fr 1fr 140px;
+            gap: 20px; align-items: start;
+            border: 1px solid var(--border);
+        }
+
+        .label-small { font-size: 10px; font-weight: 700; color: var(--text-gray); text-transform: uppercase; }
+        .val { font-size: 13px; font-weight: 500; }
+        .pass-tag { background: #fff0f0; color: #ff3b30; padding: 2px 6px; border-radius: 5px; font-family: monospace; font-size: 12px; }
+        
+        input, select, textarea {
+            width: 100%; padding: 8px; border: 1px solid #e5e5e7; border-radius: 8px;
+            font-size: 13px; background: var(--input-bg); transition: 0.2s;
+        }
+
+        .billing-row { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-top: 5px; }
+
+        .btn {
+            border: none; padding: 10px; border-radius: 8px; cursor: pointer;
+            font-weight: 600; transition: 0.2s; font-size: 12px; width: 100%;
+        }
+        .btn-save { background: var(--accent); color: white; margin-bottom: 5px; }
+        .btn-del { background: #fff0f0; color: #ff3b30; }
+
+        /* ПАГИНАЦИЯ */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 30px;
+            padding-bottom: 50px;
+        }
+        .page-link {
+            padding: 10px 16px;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: 0.2s;
+        }
+        .page-link.active {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+    </style>
+</head>
+<body>
+
+<div class="sidebar">
+    <div class="logo">IDA <span>TV</span></div>
+    <a href="#" class="nav-link active"><i class="fas fa-users"></i> Клиенты</a>
+    <a href="https://my-admin-panel-two.vercel.app/" target="_blank" class="nav-link"><i class="fas fa-link"></i> Панель 2</a>
+    <a href="#" class="nav-link" onclick="adminLogout()" style="margin-top: 40vh;"><i class="fas fa-sign-out-alt"></i> Выйти</a>
+</div>
+
+<div class="main">
+    <div class="header">
+        <h1 style="margin:0">База клиентов</h1>
+        <div id="liveTime">00:00:00</div>
+    </div>
+
+    <!-- СТАТИСТИКА -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <span class="label">Всего клиентов</span>
+            <span class="value" id="statTotal">0</span>
+        </div>
+        <div class="stat-card">
+            <span class="label">Активные (✅)</span>
+            <span class="value" id="statActive" style="color: #34c759;">0</span>
+        </div>
+        <div class="stat-card">
+            <span class="label">Ожидают (⏳)</span>
+            <span class="value" id="statWait" style="color: #ff9500;">0</span>
+        </div>
+        <div class="stat-card">
+            <span class="label">На оплате (💳)</span>
+            <span class="value" id="statPay" style="color: #5856d6;">0</span>
+        </div>
+    </div>
+
+    <!-- ПОИСК -->
+    <div class="search-box">
+        <i class="fas fa-search"></i>
+        <input type="text" id="searchInput" placeholder="Поиск по имени, почте, телефону, городу или статусу..." oninput="handleSearch()">
+    </div>
+
+    <div id="usersContainer">
+        <!-- Сюда подгружаются клиенты -->
+    </div>
+
+    <!-- ПАГИНАЦИЯ -->
+    <div id="pagination" class="pagination"></div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, collection, onSnapshot, doc, updateDoc, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyAutk3dhPPtonZJ_osnwqqm1bm4Q2de4qI",
+        authDomain: "mytv-service-a212c.firebaseapp.com",
+        projectId: "mytv-service-a212c",
+        storageBucket: "mytv-service-a212c.firebasestorage.app",
+        messagingSenderId: "297453631537",
+        appId: "1:297453631537:web:90e836440825b23a173d10"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    let allUsers = [];
+    let filteredUsers = [];
+    let currentPage = 1;
+    const itemsPerPage = 10;
+
+    setInterval(() => {
+        document.getElementById('liveTime').innerText = new Date().toLocaleTimeString('ru-RU');
+    }, 1000);
+
+    // ПОЛУЧЕНИЕ ДАННЫХ
+    onSnapshot(collection(db, "users"), (snap) => {
+        allUsers = [];
+        snap.forEach(doc => {
+            allUsers.push({ id: doc.id, ...doc.data() });
+        });
+        
+        // Сортировка: новые сверху (если есть дата)
+        allUsers.sort((a,b) => (b.regDateFull || 0) > (a.regDateFull || 0) ? 1 : -1);
+        
+        updateStats();
+        handleSearch(); // Инициализация отображения
+    });
+
+    function updateStats() {
+        document.getElementById('statTotal').innerText = allUsers.length;
+        document.getElementById('statActive').innerText = allUsers.filter(u => u.status === 'approved').length;
+        document.getElementById('statWait').innerText = allUsers.filter(u => u.status === 'waiting').length;
+        document.getElementById('statPay').innerText = allUsers.filter(u => u.status === 'pending_payment').length;
+    }
+
+    // ЛОГИКА ПОИСКА
+    window.handleSearch = () => {
+        const query = document.getElementById('searchInput').value.toLowerCase();
+        filteredUsers = allUsers.filter(u => {
+            return (
+                (u.fname + " " + u.lname).toLowerCase().includes(query) ||
+                (u.email || "").toLowerCase().includes(query) ||
+                (u.phone || "").toLowerCase().includes(query) ||
+                (u.city || "").toLowerCase().includes(query) ||
+                (u.status || "").toLowerCase().includes(query)
+            );
+        });
+        currentPage = 1; // Сброс на 1 страницу при поиске
+        renderPage();
+    };
+
+    // ОТОБРАЖЕНИЕ СТРАНИЦЫ
+    function renderPage() {
+        const container = document.getElementById('usersContainer');
+        container.innerHTML = "";
+        
+        const start = (currentPage - 1) * itemsPerPage;
+        const end = start + itemsPerPage;
+        const paginatedItems = filteredUsers.slice(start, end);
+
+        paginatedItems.forEach(u => {
+            const card = document.createElement('div');
+            card.className = 'user-card';
+            card.innerHTML = `
+                <div class="info-group">
+                    <span class="label-small">Клиент</span>
+                    <span class="val"><strong>${u.fname || ''} ${u.lname || ''}</strong></span>
+                    <span class="val" style="font-size:11px; color:var(--accent)">${u.regDate || '—'}</span>
+                    <span class="label-small" style="margin-top:10px">Пароль</span>
+                    <span class="pass-tag">${u.pass || '—'}</span>
+                </div>
+
+                <div class="info-group">
+                    <span class="label-small">Связь</span>
+                    <span class="val"><i class="fas fa-phone-alt"></i> ${u.phone || '—'}</span>
+                    <span class="val"><i class="fas fa-envelope"></i> ${u.email || '—'}</span>
+                    <span class="label-small" style="margin-top:10px">Тариф</span>
+                    <span class="val">${u.service || '—'}</span>
+                </div>
+
+                <div class="info-group">
+                    <span class="label-small">Статус & IPTV</span>
+                    <select id="st-${u.id}" style="font-weight:bold; margin-bottom:5px">
+                        <option value="waiting" ${u.status=='waiting'?'selected':''}>⏳ Ожидание</option>
+                        <option value="pending_payment" ${u.status=='pending_payment'?'selected':''}>💳 Оплата</option>
+                        <option value="approved" ${u.status=='approved'?'selected':''}>✅ Одобрено</option>
+                    </select>
+                    <input type="text" id="pl-${u.id}" value="${u.playlist||''}" placeholder="URL Плейлиста">
+                    <input type="text" id="mn-${u.id}" value="${u.manual||''}" placeholder="Инструкция" style="margin-top:5px">
+                </div>
+
+                <div class="info-group">
+                    <span class="label-small">Биллинг & Сообщения</span>
+                    <input type="text" id="ar-${u.id}" value="${u.arveNr||''}" placeholder="№ Счета">
+                    <div class="billing-row">
+                        <input type="text" id="pr-${u.id}" value="${u.price||''}" placeholder="Цена €">
+                        <input type="text" id="ex-${u.id}" value="${u.expiry||''}" placeholder="Срок">
+                    </div>
+                    <input type="text" id="cm-${u.id}" value="${u.comment||''}" placeholder="💬 Сообщение клиенту" style="margin-top:5px">
+                </div>
+
+                <div class="info-group">
+                    <button class="btn btn-save" onclick="saveData('${u.id}')">Сохранить</button>
+                    <button class="btn btn-del" onclick="deleteUser('${u.id}','${u.fname}')">Удалить</button>
+                </div>
+            `;
+            container.appendChild(card);
+        });
+        renderPaginationControls();
+    }
+
+    // КНОПКИ СТРАНИЦ
+    function renderPaginationControls() {
+        const pagBox = document.getElementById('pagination');
+        pagBox.innerHTML = "";
+        const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
+
+        if (totalPages <= 1) return;
+
+        for (let i = 1; i <= totalPages; i++) {
+            const btn = document.createElement('button');
+            btn.className = `page-link ${i === currentPage ? 'active' : ''}`;
+            btn.innerText = i;
+            btn.onclick = () => {
+                currentPage = i;
+                renderPage();
+                window.scrollTo(0, 0);
+            };
+            pagBox.appendChild(btn);
+        }
+    }
+
+    window.saveData = async (id) => {
+        try {
+            await updateDoc(doc(db, "users", id), {
+                status: document.getElementById(`st-${id}`).value,
+                playlist: document.getElementById(`pl-${id}`).value,
+                manual: document.getElementById(`mn-${id}`).value,
+                arveNr: document.getElementById(`ar-${id}`).value,
+                price: document.getElementById(`pr-${id}`).value,
+                expiry: document.getElementById(`ex-${id}`).value,
+                comment: document.getElementById(`cm-${id}`).value
+            });
+            alert("Данные сохранены!");
+        } catch (e) { alert("Ошибка сохранения"); }
+    };
+
+    window.deleteUser = async (id, name) => {
+        if(confirm(`Удалить клиента ${name}?`)) await deleteDoc(doc(db, "users", id));
+    };
+
+    window.adminLogout = () => {
+        sessionStorage.removeItem('admin_access');
+        window.location.href = 'admin-login.html';
+    };
+</script>
+</body>
+</html>

@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Регистрация / Вход - IDA TV</title>
+    <style>
+        body { 
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+            background: #f0f2f5; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .form-box { 
+            background: white; 
+            padding: 30px; 
+            border-radius: 16px; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05); 
+            width: 100%; 
+            max-width: 500px; 
+            box-sizing: border-box;
+        }
+
+        h2 { text-align: center; color: #1c1e21; margin-top: 0; margin-bottom: 25px; font-size: 24px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        
+        input, select { 
+            width: 100%; 
+            padding: 14px; 
+            margin: 8px 0; 
+            border: 1px solid #dddfe2; 
+            border-radius: 8px; 
+            box-sizing: border-box; 
+            font-size: 16px; 
+            background-color: #f5f6f7;
+            color: #1c1e21;
+            -webkit-appearance: none;
+        }
+        
+        input:focus, select:focus {
+            border-color: #1877f2;
+            background-color: #fff;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(24, 119, 242, 0.2);
+        }
+
+        label { font-size: 14px; color: #606770; display: block; margin-top: 12px; font-weight: 600; }
+        
+        /* ГАРАНТИРОВАННО ВИДИМЫЙ ЧЕКБОКС */
+        .checkbox-group { 
+            display: flex; 
+            align-items: center; 
+            gap: 15px; 
+            margin-top: 25px; 
+            padding: 15px;
+            background: #f8f9fa; 
+            border-radius: 12px;
+            cursor: pointer;
+            user-select: none;
+            border: 1px solid #eee;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            display: none; /* Скрываем стандартный */
+        }
+
+        .custom-checkbox {
+            width: 26px;
+            height: 26px;
+            border: 2px solid #1877f2;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            background: white;
+            transition: all 0.2s ease;
+        }
+
+        /* Когда нажато - синий фон */
+        .checkbox-group input:checked + .custom-checkbox {
+            background: #1877f2;
+        }
+
+        /* Рисуем белую галочку */
+        .custom-checkbox::after {
+            content: "✓";
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            display: none;
+        }
+
+        .checkbox-group input:checked + .custom-checkbox::after {
+            display: block;
+        }
+
+        .checkbox-group label { 
+            margin: 0 !important; 
+            font-weight: normal !important; 
+            color: #4b4f56;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        button#submitBtn { 
+            width: 100%; 
+            padding: 16px; 
+            background: #1877f2; 
+            color: white; 
+            border: none; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            font-size: 18px; 
+            margin-top: 25px; 
+            font-weight: bold; 
+        }
+
+        .hidden { display: none !important; }
+        .section-title { font-weight: bold; border-bottom: 2px solid #e9ebee; margin-top: 20px; padding-bottom: 8px; color: #1877f2; font-size: 17px; }
+        .toggle-p { text-align: center; margin-top: 20px; font-size: 15px; }
+        .toggle-p a { color: #1877f2; text-decoration: none; font-weight: 600; }
+
+        @media screen and (max-width: 480px) {
+            body { padding: 10px; align-items: flex-start; background: #fff; }
+            .form-box { padding: 20px; border-radius: 0; box-shadow: none; border: none; }
+            .grid { grid-template-columns: 1fr; gap: 0; }
+            input, select { padding: 12px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="form-box">
+    <h2 id="title">Создать аккаунт IDA TV</h2>
+    <form id="mainForm">
+        <input type="email" id="email" placeholder="E-mail (обязательно)" required>
+        <input type="password" id="pass" placeholder="Пароль (мин. 6 знаков)" required>
+
+        <div id="regFields">
+            <div class="section-title">Личные данные</div>
+            <div class="grid">
+                <input type="text" id="fname" placeholder="Имя">
+                <input type="text" id="lname" placeholder="Фамилия">
+            </div>
+            <input type="tel" id="phone" placeholder="Номер телефона (+372...)">
+
+            <div class="section-title">Адрес установки</div>
+            <input type="text" id="city" placeholder="Город">
+            <div class="grid">
+                <input type="text" id="street" placeholder="Улица">
+                <input type="text" id="house" placeholder="Дом / Кв">
+            </div>
+
+            <div class="section-title">Параметры услуги</div>
+            <label>Выбрать заявку:</label>
+            <select id="serviceType">
+                <option value="Плейлист: Базовый (25 EUR)">Плейлист: Базовый — 25 EUR</option>
+                <option value="Плейлист: Оптимальный (35 EUR)">Плейлист: Оптимальный — 35 EUR</option>
+                <option value="Аренда оборудования (15 EUR/мес)">Аренда оборудования — 15 EUR/мес</option>
+                <option value="Настройка на приставку (90 EUR)">Настройка на приставку — 90 EUR</option>
+                <option value="Удалённая Настройка (65 EUR)">Удалённая Настройка — 65 EUR</option>
+                <option value="Smart TV на месте (70 EUR)">Smart TV на месте — 70 EUR</option>
+            </select>
+
+            <label>Ваше устройство:</label>
+            <select id="deviceType">
+                <option value="Smart TV - Lg">Smart TV - Lg</option>
+                <option value="Smart TV - Samsung">Smart TV - Samsung</option>
+                <option value="Android - Smart TV">Android - Smart TV</option>
+                <option value="Приставка">Приставка</option>
+                <option value="Другой Smart TV">Другой Smart TV</option>
+                <option value="Не знаю">Не знаю</option>
+            </select>
+
+            <label>Количество устройств:</label>
+            <select id="devicesCount">
+                <option value="1">1 устройство</option>
+                <option value="2">2 устройства</option>
+                <option value="3">3 устройства</option>
+                <option value="4">4 устройства</option>
+                <option value="5">5 устройств</option>
+            </select>
+
+            <!-- КЛИКАБЕЛЬНАЯ ЗОНА ЧЕКБОКСА -->
+            <div class="checkbox-group" onclick="const c = this.querySelector('input'); c.checked = !c.checked;">
+                <input type="checkbox" id="agree">
+                <div class="custom-checkbox"></div>
+                <label>Я согласен с правилами сервиса IDA TV</label>
+            </div>
+        </div>
+
+        <button type="submit" id="submitBtn">Зарегистрироваться</button>
+        <p class="toggle-p">
+            <a href="#" onclick="toggleMode(); return false;" id="toggleLink">Уже есть аккаунт? Войти</a>
+        </p>
+    </form>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyAutk3dhPPtonZJ_osnwqqm1bm4Q2de4qI",
+        authDomain: "mytv-service-a212c.firebaseapp.com",
+        projectId: "mytv-service-a212c",
+        storageBucket: "mytv-service-a212c.firebasestorage.app",
+        messagingSenderId: "297453631537",
+        appId: "1:297453631537:web:90e836440825b23a173d10"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const urlParams = new URLSearchParams(window.location.search);
+    let isLogin = urlParams.get('mode') === 'login';
+
+    function updateUI() {
+        const regFields = document.getElementById('regFields');
+        const title = document.getElementById('title');
+        const submitBtn = document.getElementById('submitBtn');
+        const toggleLink = document.getElementById('toggleLink');
+
+        if (isLogin) {
+            regFields.classList.add('hidden');
+            title.innerText = 'Вход в кабинет';
+            submitBtn.innerText = 'Войти';
+            toggleLink.innerText = 'Нет аккаунта? Зарегистрироваться';
+        } else {
+            regFields.classList.remove('hidden');
+            title.innerText = 'Создать аккаунт IDA TV';
+            submitBtn.innerText = 'Зарегистрироваться';
+            toggleLink.innerText = 'Уже есть аккаунт? Войти';
+        }
+
+        const inputs = regFields.querySelectorAll('input, select');
+        inputs.forEach(el => {
+            if (isLogin) el.removeAttribute('required');
+            else el.setAttribute('required', '');
+        });
+    }
+
+    window.toggleMode = () => {
+        isLogin = !isLogin;
+        updateUI();
+        window.scrollTo(0, 0);
+    };
+
+    updateUI();
+
+    document.getElementById('mainForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('email').value;
+        const pass = document.getElementById('pass').value;
+        const btn = document.getElementById('submitBtn');
+
+        const originalBtnText = btn.innerText;
+        btn.innerText = isLogin ? 'Вход...' : 'Регистрация...';
+        btn.disabled = true;
+
+        try {
+            if (isLogin) {
+                await signInWithEmailAndPassword(auth, email, pass);
+                window.location.href = 'dashboard.html';
+            } else {
+                if (!document.getElementById('agree').checked) {
+                    alert("Пожалуйста, примите правила сервиса.");
+                    btn.innerText = originalBtnText;
+                    btn.disabled = false;
+                    return;
+                }
+
+                const res = await createUserWithEmailAndPassword(auth, email, pass);
+                const user = res.user;
+
+                const userData = {
+                    fname: document.getElementById('fname').value,
+                    lname: document.getElementById('lname').value,
+                    phone: document.getElementById('phone').value,
+                    city: document.getElementById('city').value,
+                    address: `${document.getElementById('street').value}, ${document.getElementById('house').value}`,
+                    service: document.getElementById('serviceType').value,
+                    device: document.getElementById('deviceType').value,
+                    count: document.getElementById('devicesCount').value,
+                    status: 'waiting',
+                    playlist: '',
+                    manual: '',
+                    arveNr: '',
+                    expiry: '',
+                    comment: '',
+                    regDate: new Date().toLocaleDateString()
+                };
+
+                await setDoc(doc(db, "users", user.uid), userData);
+
+                const botToken = "8544750089:AAHswx71xxvAMp4RyFELZuOY0Vyr9Ywds8A";
+                const chatId = "1084236547";
+                const msg = `🚀 НОВЫЙ КЛИЕНТ IDA TV!\n👤 ${userData.fname} ${userData.lname}\n📞 ${userData.phone}\n📍 ${userData.city}\n💰 Услуга: ${userData.service}\n📺 Устр-во: ${userData.device}`;
+                
+                try {
+                    await fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(msg)}`);
+                } catch(tErr) { console.error("Telegram error:", tErr); }
+
+                alert('Аккаунт создан! Переходим в личный кабинет.');
+                window.location.href = 'dashboard.html';
+            }
+        } catch (err) { 
+            console.error(err);
+            btn.innerText = originalBtnText;
+            btn.disabled = false;
+            if (err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') alert("Неверный логин или пароль.");
+            else if (err.code === 'auth/email-already-in-use') alert("Этот E-mail уже занят.");
+            else alert("Ошибка: " + err.message); 
+        }
+    });
+</script>
+</body>
+</html>
