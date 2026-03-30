@@ -6,95 +6,48 @@
     <title>Мой кабинет - IDA TV</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root {
-            --primary: #007aff;
-            --text-main: #1d1d1f;
-            --text-secondary: #6e6e73;
-            --bg-body: #f5f7f9;
-            --white: #ffffff;
-            --border-color: #d2d2d7;
-            --success: #2e7d32;
-        }
-
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg-body); padding: 20px; display: flex; justify-content: center; color: var(--text-main); }
-        .container { max-width: 600px; width: 100%; background: var(--white); padding: 30px; border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.05); box-sizing: border-box; }
+        :root { --primary: #007aff; --bg-body: #f5f7f9; --white: #ffffff; }
+        body { font-family: -apple-system, sans-serif; background: var(--bg-body); padding: 20px; display: flex; justify-content: center; }
+        .container { max-width: 600px; width: 100%; background: var(--white); padding: 30px; border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.05); }
         
-        h2 { text-align: center; font-weight: 700; margin-bottom: 25px; }
+        /* Блок уведомлений - по умолчанию скрыт */
+        .global-notice { display: none; background: #fff9c4; border-radius: 16px; padding: 15px; margin-bottom: 20px; border: 1px solid #ffe58f; }
         
-        /* Блок уведомлений */
-        .global-notice { display: none; background: #fff9c4; border-radius: 16px; padding: 15px; margin-bottom: 20px; border: 1px solid #ffe58f; animation: fadeIn 0.3s ease; }
-
-        .status-badge { padding: 12px; border-radius: 12px; font-weight: 600; text-align: center; margin-bottom: 25px; font-size: 15px; }
-        .waiting { background: #f5f5f7; color: #86868b; }
-        .pending_payment { background: #eaf2ff; color: var(--primary); }
-        .approved { background: #e8f5e9; color: var(--success); }
-
-        .profile-card { background: #fff; padding: 20px; border-radius: 16px; border: 1px solid var(--border-color); margin-bottom: 20px; }
-        .info-label { font-size: 11px; color: var(--text-secondary); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 4px; }
-
-        .active-card { border: 1px solid #c6e1c6; border-radius: 16px; padding: 25px; background: #f9fff9; margin-top: 10px; }
-        code { display: block; background: #1d1d1f; color: #fff; padding: 12px; border-radius: 10px; word-break: break-all; font-size: 12px; margin: 10px 0; cursor: pointer; }
-
-        .action-btn { background: var(--white); border: 1px solid var(--primary); color: var(--primary); padding: 10px; border-radius: 10px; font-weight: 600; cursor: pointer; width: 100%; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 13px; transition: 0.2s; text-decoration: none; }
-        .action-btn:hover { background: var(--primary); color: white; }
-
-        .edit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
-        .edit-grid input { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; font-size: 13px; }
-
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .profile-card { background: #fff; padding: 20px; border-radius: 16px; border: 1px solid #d2d2d7; margin-bottom: 20px; }
+        .info-label { font-size: 11px; color: #6e6e73; text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 4px; }
+        .active-card { border: 1px solid #c6e1c6; border-radius: 16px; padding: 25px; background: #f9fff9; }
+        code { display: block; background: #1d1d1f; color: #fff; padding: 12px; border-radius: 10px; word-break: break-all; margin: 10px 0; }
+        .action-btn { background: var(--white); border: 1px solid var(--primary); color: var(--primary); padding: 10px; border-radius: 10px; font-weight: 600; cursor: pointer; width: 100%; margin-top: 10px; display: block; text-align: center; text-decoration: none; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2 id="welcomeTitle">Личный кабинет</h2>
+    <h2>Личный кабинет</h2>
 
+    <!-- Окно сообщения -->
     <div id="globalNotice" class="global-notice">
-        <div id="noticeText" style="font-size: 14px; color: #856404; line-height: 1.4;"></div>
+        <div id="noticeText" style="font-size: 14px; color: #856404;"></div>
     </div>
 
     <div class="profile-card">
         <span class="info-label">Ваши данные</span>
-        <div id="clientFullName" style="font-weight: 700; font-size: 18px;"></div>
-        <div id="clientPhone" style="font-size: 14px; color: var(--text-secondary);"></div>
-        <div id="clientAddressDisplay" style="font-size: 13px; color: var(--text-secondary); margin-top: 5px;"></div>
-        
-        <button class="action-btn" onclick="toggleEditForm()"><i class="fas fa-edit"></i> Редактировать профиль</button>
-        
-        <div id="editForm" style="display:none; margin-top:10px; padding: 15px; background: #f9f9f9; border-radius: 12px;">
-            <div class="edit-grid">
-                <input type="text" id="editFname" placeholder="Имя">
-                <input type="text" id="editLname" placeholder="Фамилия">
-            </div>
-            <div class="edit-grid">
-                <input type="text" id="editPhone" placeholder="Телефон">
-                <input type="text" id="editCity" placeholder="Город">
-            </div>
-            <input type="text" id="editAddress" placeholder="Адрес" style="width:100%; padding:10px; margin-bottom:8px; border-radius:8px; border:1px solid #ccc; box-sizing: border-box;">
-            <button class="action-btn" style="width:100%; background:var(--primary); color:white;" onclick="updateUserData()">Сохранить изменения</button>
-        </div>
+        <div id="clientName" style="font-weight: 700; font-size: 18px;">Загрузка...</div>
+        <div id="clientPhone" style="font-size: 14px; color: #6e6e73;"></div>
     </div>
-
-    <div id="statusDiv" class="status-badge waiting">Загрузка данных...</div>
 
     <div id="activeSection" style="display:none;" class="active-card">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-            <h3 style="margin: 0; font-size: 18px; color: var(--success);"><i class="fas fa-check-circle"></i> Подписка активна</h3>
-            <div id="manualBtnContainer"></div>
-        </div>
-        <div id="playlistContainer" style="margin-top: 15px;"></div>
-        <div style="text-align: right; margin-top: 15px; font-size: 13px;">
-            <span class="info-label">Действует до:</span> <strong id="expDate"></strong>
-        </div>
+        <h3 style="color: #2e7d32;">Подписка активна</h3>
+        <div id="playlistContainer"></div>
     </div>
 
-    <button class="btn-logout" onclick="logout()" style="width:100%; margin-top:20px; background:none; border:none; color:red; cursor:pointer; font-weight:600;">Выйти</button>
+    <button onclick="logout()" style="width:100%; margin-top:20px; color:red; background:none; border:none; cursor:pointer;">Выйти</button>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getFirestore, doc, onSnapshot, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyAutk3dhPPtonZJ_osnwqqm1bm4Q2de4qI",
@@ -107,119 +60,60 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    let currentData = {};
-    let globalBroadcast = "";
+    let userData = {};
+    let broadcastMsg = "";
 
     onAuthStateChanged(auth, (user) => {
         if (user) {
-            // Слушаем данные пользователя (включая личное сообщение comment)
-            onSnapshot(doc(db, "users", user.uid), (docSnap) => {
-                if (docSnap.exists()) {
-                    currentData = docSnap.data();
-                    renderUI(currentData);
-                    updateGlobalNotice(); // Обновляем при каждом изменении данных юзера
-                }
+            // Слушаем данные пользователя
+            onSnapshot(doc(db, "users", user.uid), (snap) => {
+                userData = snap.exists() ? snap.data() : {};
+                renderPage();
             });
 
-            // Слушаем глобальную рассылку
+            // Слушаем рассылку
             onSnapshot(doc(db, "settings", "broadcast"), (snap) => {
-                // Если документа нет или поля message нет — ставим пустую строку
-                globalBroadcast = (snap.exists() && snap.data().message) ? snap.data().message : "";
-                updateGlobalNotice();
+                broadcastMsg = (snap.exists() && snap.data().message) ? snap.data().message : "";
+                renderPage();
             });
         } else {
             window.location.href = 'login.html';
         }
     });
 
-    // ФУНКЦИЯ УПРАВЛЕНИЯ СООБЩЕНИЯМИ (РЕШЕНИЕ ПРОБЛЕМЫ)
-    function updateGlobalNotice() {
+    function renderPage() {
+        // 1. Отображение профиля
+        document.getElementById('clientName').innerText = (userData.fname || "") + " " + (userData.lname || "");
+        document.getElementById('clientPhone').innerText = userData.phone || "";
+
+        // 2. ЖЕСТКАЯ ПРОВЕРКА СООБЩЕНИЙ
         const box = document.getElementById('globalNotice');
         const txt = document.getElementById('noticeText');
         
-        // Очищаем от лишних пробелов, чтобы пустая строка " " считалась пустой
-        const personal = (currentData.comment || "").trim();
-        const broadcast = (globalBroadcast || "").trim();
-        
-        // Приоритет личного сообщения над общим
-        const finalMsg = personal !== "" ? personal : broadcast;
+        const personal = (userData.comment || "").trim();
+        const global = (broadcastMsg || "").trim();
+        const finalMsg = personal !== "" ? personal : global;
 
-        if (finalMsg === "") {
-            // Если сообщения нет — полностью скрываем блок
-            box.style.display = 'none';
+        if (finalMsg === "" || finalMsg === "undefined") {
+            box.style.setProperty("display", "none", "important");
             txt.innerText = "";
         } else {
-            // Если сообщение появилось — показываем блок
             box.style.display = 'block';
             txt.innerText = finalMsg;
         }
-    }
 
-    function renderUI(data) {
-        document.getElementById('clientFullName').innerText = `${data.fname || ""} ${data.lname || ""}`;
-        document.getElementById('clientPhone').innerText = `📞 ${data.phone || "---"}`;
-        document.getElementById('clientAddressDisplay').innerText = `📍 ${data.city || ""}, ${data.address || ""}`;
-
-        document.getElementById('editFname').value = data.fname || '';
-        document.getElementById('editLname').value = data.lname || '';
-        document.getElementById('editPhone').value = data.phone || '';
-        document.getElementById('editCity').value = data.city || '';
-        document.getElementById('editAddress').value = data.address || '';
-
-        const sDiv = document.getElementById('statusDiv');
-        const aSec = document.getElementById('activeSection');
-        
-        if (data.status === 'approved') {
-            sDiv.style.display = 'none';
-            aSec.style.display = 'block';
-            document.getElementById('expDate').innerText = data.expiry || '---';
-
-            const playlistContainer = document.getElementById('playlistContainer');
-            playlistContainer.innerHTML = '';
-            if (data.playlist) {
-                data.playlist.split('|').forEach((item, index) => {
-                    const parts = item.split(':');
-                    const name = parts.length > 1 ? parts[0].trim() : "Плейлист " + (index + 1);
-                    const url = parts.length > 1 ? parts.slice(1).join(':').trim() : item.trim();
-                    playlistContainer.innerHTML += `
-                        <div style="margin-bottom: 12px;">
-                            <span class="info-label" style="color: var(--primary);">${name}:</span>
-                            <code onclick="copyToClipboard('${url}')">${url}</code>
-                        </div>`;
+        // 3. Статус подписки
+        if (userData.status === 'approved') {
+            document.getElementById('activeSection').style.display = 'block';
+            const cont = document.getElementById('playlistContainer');
+            cont.innerHTML = '';
+            if (userData.playlist) {
+                userData.playlist.split('|').forEach(item => {
+                    cont.innerHTML += `<code>${item}</code>`;
                 });
             }
-
-            const manualCont = document.getElementById('manualBtnContainer');
-            manualCont.innerHTML = data.manual ? `<a href="${data.manual}" target="_blank" class="action-btn" style="margin:0; padding: 5px 12px; background: var(--success); border:none; color:white;"><i class="fas fa-book"></i> Инструкция</a>` : '';
-        } else {
-            sDiv.innerText = data.status === 'pending_payment' ? "💳 ОЖИДАНИЕ ОПЛАТЫ" : "⏳ ЗАЯВКА НА РАССМОТРЕНИИ";
-            sDiv.className = "status-badge " + (data.status === 'pending_payment' ? "pending_payment" : "waiting");
         }
     }
-
-    window.toggleEditForm = () => {
-        const f = document.getElementById('editForm');
-        f.style.display = f.style.display === 'none' ? 'block' : 'none';
-    };
-
-    window.updateUserData = async () => {
-        const up = {
-            fname: document.getElementById('editFname').value,
-            lname: document.getElementById('editLname').value,
-            phone: document.getElementById('editPhone').value,
-            city: document.getElementById('editCity').value,
-            address: document.getElementById('editAddress').value
-        };
-        try {
-            await updateDoc(doc(db, "users", auth.currentUser.uid), up);
-            alert("Обновлено!");
-            window.toggleEditForm();
-        } catch (e) { alert("Ошибка сохранения."); }
-    };
-
-    window.copyToClipboard = (text) => {
-        navigator.clipboard.writeText(text).then(() => alert("Ссылка скопирована"));
-    };
 
     window.logout = () => signOut(auth).then(() => window.location.href = 'login.html');
 </script>
