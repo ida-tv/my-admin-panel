@@ -52,6 +52,7 @@
         .stat-card .label { font-size: 11px; color: var(--text-gray); text-transform: uppercase; font-weight: 700; }
         .stat-card .value { font-size: 26px; font-weight: 800; margin-top: 5px; color: var(--accent); }
 
+        /* МАССОВАЯ РАССЫЛКА СТИЛИ */
         .broadcast-card {
             background: #ffffff; border: 2px solid var(--accent);
             border-radius: 18px; padding: 20px; margin-bottom: 30px; box-shadow: 0 8px 20px rgba(0,122,255,0.12);
@@ -61,6 +62,7 @@
             width: 100%; background: var(--input-bg); border: 1px solid var(--border);
             border-radius: 10px; padding: 12px; font-size: 14px; resize: none; height: 60px; box-sizing: border-box;
         }
+        .broadcast-actions { display: flex; gap: 10px; margin-top: 10px; }
 
         .search-box { position: relative; margin-bottom: 25px; }
         .search-box input {
@@ -94,6 +96,8 @@
         .btn-save { background: var(--accent); color: white; width: 100%; border-bottom: 2px solid #0056b3; }
         .btn-save:hover { background: #0066d6; transform: translateY(-1px); }
         .btn-del { background: #fff0f0; color: #ff3b30; width: 100%; margin-top: 6px; }
+        .btn-broadcast { background: var(--accent); color: white; padding: 10px 20px; flex: 2; }
+        .btn-clear { background: #6e6e73; color: white; padding: 10px 20px; flex: 1; }
         
         .pagination { display: flex; justify-content: center; gap: 8px; margin: 30px 0; }
         .page-btn { padding: 8px 14px; background: white; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; font-weight: 600; }
@@ -120,6 +124,16 @@
         <div class="stat-card"><span class="label">Активные</span><div class="value" id="statActive" style="color:#34c759">0</div></div>
         <div class="stat-card"><span class="label">Ожидают</span><div class="value" id="statWait" style="color:#ff9500">0</div></div>
         <div class="stat-card"><span class="label">Оплата</span><div class="value" id="statPay" style="color:#5856d6">0</div></div>
+    </div>
+
+    <!-- НОВЫЙ БЛОК: МАССОВАЯ РАССЫЛКА -->
+    <div class="broadcast-card">
+        <h3><i class="fas fa-bullhorn"></i> Массовая рассылка всем клиентам</h3>
+        <textarea id="massMsg" placeholder="Этот текст увидят все клиенты в поле 'Сообщение от администрации'..."></textarea>
+        <div class="broadcast-actions">
+            <button class="btn btn-broadcast" onclick="sendBroadcast()">🚀 Отправить всем</button>
+            <button class="btn btn-clear" onclick="clearAllBroadcasts()">🗑 Удалить рассылку у всех</button>
+        </div>
     </div>
 
     <div class="search-box">
@@ -217,8 +231,7 @@
                     <input type="text" id="mn-${u.id}" value="${u.manual||''}" placeholder="Инструкция" style="margin-top:5px">
                 </div>
                 <div class="info-group">
-                    <span class="label-sm">Биллинг (Счет и Оплата)</span>
-                    <!-- ПОЛЕ ARVE NR ВРУЧНУЮ -->
+                    <span class="label-sm">Биллинг & Сообщение</span>
                     <div style="margin-bottom: 5px;">
                         <span style="font-size: 10px; color: #666;">Arve nr:</span>
                         <input type="text" id="ar-${u.id}" value="${u.arveNr||''}" placeholder="Номер счета">
@@ -254,13 +267,53 @@
         }
     }
 
+    // НОВАЯ ФУНКЦИЯ: ОТПРАВИТЬ ВСЕМ
+    window.sendBroadcast = async () => {
+        const msg = document.getElementById('massMsg').value;
+        if (!msg.trim()) return alert("Введите текст сообщения!");
+        
+        if (confirm("Вы уверены, что хотите отправить это сообщение ВСЕМ клиентам? Это перезапишет их текущие сообщения.")) {
+            try {
+                const querySnapshot = await getDocs(collection(db, "users"));
+                const promises = [];
+                querySnapshot.forEach((userDoc) => {
+                    promises.push(updateDoc(doc(db, "users", userDoc.id), { comment: msg }));
+                });
+                await Promise.all(promises);
+                alert("Рассылка успешно завершена!");
+                document.getElementById('massMsg').value = "";
+            } catch (e) {
+                console.error(e);
+                alert("Ошибка при рассылке!");
+            }
+        }
+    };
+
+    // НОВАЯ ФУНКЦИЯ: УДАЛИТЬ У ВСЕХ
+    window.clearAllBroadcasts = async () => {
+        if (confirm("Вы уверены, что хотите УДАЛИТЬ сообщения у ВСЕХ клиентов?")) {
+            try {
+                const querySnapshot = await getDocs(collection(db, "users"));
+                const promises = [];
+                querySnapshot.forEach((userDoc) => {
+                    promises.push(updateDoc(doc(db, "users", userDoc.id), { comment: "" }));
+                });
+                await Promise.all(promises);
+                alert("Все сообщения удалены!");
+            } catch (e) {
+                console.error(e);
+                alert("Ошибка при удалении!");
+            }
+        }
+    };
+
     window.saveData = async (id) => {
         try {
             await updateDoc(doc(db, "users", id), {
                 status: document.getElementById(`st-${id}`).value,
                 playlist: document.getElementById(`pl-${id}`).value,
                 manual: document.getElementById(`mn-${id}`).value,
-                arveNr: document.getElementById(`ar-${id}`).value, // Сохранение номера счета
+                arveNr: document.getElementById(`ar-${id}`).value,
                 price: document.getElementById(`pr-${id}`).value,
                 expiry: document.getElementById(`ex-${id}`).value,
                 comment: document.getElementById(`cm-${id}`).value,
@@ -271,11 +324,7 @@
     };
 
     window.deleteUser = async (id, name) => { if(confirm(`Удалить ${name}?`)) await deleteDoc(doc(db,"users",id)); };
-    
-    window.adminLogout = () => {
-        sessionStorage.removeItem('admin_access');
-        window.location.href = 'admin-login.html';
-    };
+    window.adminLogout = () => { sessionStorage.removeItem('admin_access'); window.location.href = 'admin-login.html'; };
 </script>
 </body>
 </html>
