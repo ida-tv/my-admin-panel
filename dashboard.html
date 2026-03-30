@@ -44,6 +44,10 @@
         .action-btn { background: var(--white); border: 1px solid var(--primary); color: var(--primary); padding: 10px; border-radius: 10px; font-weight: 600; cursor: pointer; width: 100%; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 13px; transition: 0.2s; }
         .action-btn:hover { background: var(--primary); color: white; }
         
+        /* КНОПКА СКАЧИВАНИЯ */
+        .download-btn { background: var(--success); color: white; border: none; padding: 6px 12px; border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer; margin-top: 5px; display: inline-flex; align-items: center; gap: 6px; transition: 0.2s; }
+        .download-btn:hover { opacity: 0.8; }
+
         .support-card { border: none; border-radius: 20px; padding: 0; background: #ffffff; margin-top: 25px; box-shadow: 0 10px 25px rgba(0,122,255,0.1); overflow: hidden; }
         .support-header { background: var(--primary); padding: 15px 20px; color: white; display: flex; align-items: center; gap: 12px; }
         .support-header h3 { margin: 0; font-size: 16px; font-weight: 600; }
@@ -195,7 +199,7 @@
             });
 
             onSnapshot(doc(db, "settings", "broadcast"), (snap) => {
-                globalBroadcastMessage = (snap.exists()) ? snap.data().message : "";
+                globalBroadcastMessage = (snap.exists()) ? (snap.data().message || "") : "";
                 updateGlobalNotice();
             });
         } else {
@@ -206,15 +210,13 @@
     function updateGlobalNotice() {
         const box = document.getElementById('globalNotice');
         const txt = document.getElementById('noticeText');
-        
-        // Личное сообщение из базы (comment) имеет приоритет перед рассылкой
-        const messageToShow = (currentData.comment && currentData.comment.trim() !== "") 
-            ? currentData.comment 
-            : globalBroadcastMessage;
+        const pMsg = (currentData && currentData.comment) ? currentData.comment.trim() : "";
+        const bMsg = globalBroadcastMessage ? globalBroadcastMessage.trim() : "";
+        const msg = pMsg !== "" ? pMsg : bMsg;
 
-        if (messageToShow && messageToShow.trim() !== "") {
+        if (msg !== "") {
             box.style.display = 'block';
-            txt.innerText = messageToShow;
+            txt.innerText = msg;
         } else {
             box.style.display = 'none';
             txt.innerText = "";
@@ -252,18 +254,21 @@
             playlistContainer.innerHTML = '';
             if (data.playlist) {
                 const items = data.playlist.split('|');
-                items.forEach(item => {
+                items.forEach((item, index) => {
                     const parts = item.split(':');
-                    let name = "Ваш плейлист";
+                    let name = "Плейлист " + (index + 1);
                     let url = item.trim();
                     if (parts.length > 1) {
                         name = parts[0].trim();
                         url = parts.slice(1).join(':').trim();
                     }
                     playlistContainer.innerHTML += `
-                        <div style="margin-bottom: 12px;">
+                        <div style="margin-bottom: 15px; background: rgba(0,0,0,0.03); padding: 10px; border-radius: 12px;">
                             <span class="info-label" style="color: var(--primary);">${name}:</span>
                             <code onclick="copyToClipboard('${url}')">${url}</code>
+                            <button class="download-btn" onclick="downloadM3U('${url}', '${name}')">
+                                <i class="fas fa-file-download"></i> Скачать M3U файл
+                            </button>
                         </div>
                     `;
                 });
@@ -278,7 +283,6 @@
             sDiv.innerText = "💳 ОЖИДАНИЕ ОПЛАТЫ";
             sDiv.className = "status-badge pending_payment";
             pSec.style.display = 'block';
-            
             document.getElementById('billNr').innerText = `№ ${data.arveNr || '---'}`;
             document.getElementById('billRef').innerText = data.arveNr || '---';
             document.getElementById('billPrice').innerText = data.price || '0';
@@ -289,6 +293,25 @@
             sDiv.className = "status-badge waiting";
         }
     }
+
+    window.downloadM3U = async (url, name) => {
+        try {
+            const response = await fetch(url);
+            const blob = await response.blob();
+            const downloadUrl = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = downloadUrl;
+            a.download = `${name.replace(/\s+/g, '_')}.m3u`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(downloadUrl);
+            document.body.removeChild(a);
+        } catch (e) {
+            alert("Не удалось скачать файл напрямую. Попробуйте скопировать ссылку.");
+            console.error(e);
+        }
+    };
 
     window.toggleEditForm = () => {
         const f = document.getElementById('editForm');
@@ -307,23 +330,16 @@
             await updateDoc(doc(db, "users", auth.currentUser.uid), updateObj);
             alert("Данные профиля обновлены!");
             window.toggleEditForm();
-        } catch (e) { 
-            console.error(e);
-            alert("Ошибка сохранения."); 
-        }
+        } catch (e) { alert("Ошибка сохранения."); }
     };
 
     window.copyToClipboard = (text) => {
-        navigator.clipboard.writeText(text).then(() => {
-            alert("Ссылка скопирована");
-        });
+        navigator.clipboard.writeText(text).then(() => alert("Ссылка скопирована"));
     };
 
     window.requestUpdate = (type) => {
         const label = type === 'PLAYLIST' ? 'ОБНОВЛЕНИЕ ПЛЕЙЛИСТА' : 'СМЕНУ СЕРВЕРА';
-        if(confirm(`Запросить ${label}?`)) {
-            window.sendToTelegram(type, `🚨 Запрос: ${label}`);
-        }
+        if(confirm(`Запросить ${label}?`)) window.sendToTelegram(type, `🚨 Запрос: ${label}`);
     };
 
     window.sendToTelegram = async (type, msg) => {
@@ -332,24 +348,18 @@
         const textarea = document.getElementById('supportText');
         let text = (type === 'MESSAGE') ? textarea.value : msg;
         if (!text || text.trim() === "") return alert("Введите текст.");
-
         const info = `🆔 [${type}]\n👤 Клиент: ${currentData.fname} ${currentData.lname}\n📞 Тел: ${currentData.phone}\n📍 Адрес: ${currentData.city}, ${currentData.address}\n\n💬 Текст: ${text}`;
-
         try {
             const res = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({ chat_id: chatId, text: info })
             });
-            if (res.ok) {
-                if (type === 'MESSAGE') {
-                    document.getElementById('supportForm').style.display = 'none';
-                    document.getElementById('supportSuccess').style.display = 'block';
-                    textarea.value = "";
-                } else {
-                    alert("Отправлено!");
-                }
-            }
+            if (res.ok && type === 'MESSAGE') {
+                document.getElementById('supportForm').style.display = 'none';
+                document.getElementById('supportSuccess').style.display = 'block';
+                textarea.value = "";
+            } else if (res.ok) alert("Отправлено!");
         } catch (e) { console.error(e); }
     };
 
@@ -358,9 +368,7 @@
         document.getElementById('supportSuccess').style.display = 'none';
     };
 
-    window.logout = () => {
-        signOut(auth).then(() => window.location.href = 'login.html');
-    };
+    window.logout = () => signOut(auth).then(() => window.location.href = 'login.html');
 </script>
 </body>
 </html>
