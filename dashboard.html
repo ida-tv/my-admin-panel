@@ -29,12 +29,10 @@
         .pending_payment { background: #eaf2ff; color: var(--primary); }
         .approved { background: #e8f5e9; color: var(--success); }
 
-        /* ПРОФИЛЬ */
         .profile-card { background: #fff; padding: 20px; border-radius: 16px; border: 1px solid var(--border-color); margin-bottom: 20px; }
         .info-label { font-size: 12px; color: var(--text-secondary); text-transform: uppercase; font-weight: 600; display: block; margin-bottom: 4px; }
         .info-value { font-size: 15px; font-weight: 500; line-height: 1.4; }
 
-        /* ИНВОЙС */
         .invoice-card { border: 1px solid var(--border-color); border-radius: 16px; margin-top: 20px; background: var(--white); overflow: hidden; }
         .invoice-header { background: #fbfbfd; border-bottom: 1px solid var(--border-color); padding: 20px; display: flex; justify-content: space-between; align-items: center; }
         .invoice-header h3 { margin: 0; font-size: 16px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-secondary); }
@@ -44,11 +42,9 @@
         .iban-code { font-family: "SF Mono", "Menlo", monospace; font-size: 17px; font-weight: 700; color: var(--primary); display: block; margin: 8px 0; }
         .ref-tag { color: var(--text-main); font-weight: 700; background: #fff; padding: 4px 8px; border-radius: 6px; border: 1px solid var(--border-color); }
 
-        /* ПЛЕЙЛИСТ */
         .active-card { border: 1px solid #c6e1c6; border-radius: 16px; padding: 30px; background: #f9fff9; margin-top: 20px; }
         code { display: block; background: #1d1d1f; color: #fff; padding: 16px; border-radius: 12px; word-break: break-all; font-size: 13px; line-height: 1.6; margin: 15px 0; }
 
-        /* КНОПКИ */
         .action-btn { background: var(--white); border: 1px solid var(--primary); color: var(--primary); padding: 10px 15px; border-radius: 10px; font-weight: 600; cursor: pointer; transition: 0.2s; font-size: 13px; margin-top: 10px; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; }
         .action-btn:hover { background: var(--primary); color: white; }
         
@@ -96,6 +92,37 @@
     </div>
 
     <div id="statusDiv" class="status-badge waiting">Загрузка...</div>
+
+    <!-- БЛОК СЧЕТА (ИНВОЙСА) -->
+    <div id="paymentSection" style="display:none;">
+        <div class="invoice-card">
+            <div class="invoice-header">
+                <h3>Инвойс / Счет</h3>
+                <div class="invoice-logo">IDA TV</div>
+            </div>
+            <div class="invoice-body">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+                    <div>
+                        <span class="info-label">Номер счета</span>
+                        <div class="info-value" id="billNr">---</div>
+                    </div>
+                    <div style="text-align: right;">
+                        <span class="info-label">К оплате</span>
+                        <div class="info-value" style="font-size: 22px; color: var(--primary);"><span id="billPrice">0</span> €</div>
+                    </div>
+                </div>
+                <div class="bank-details">
+                    <span class="info-label">IBAN для оплаты</span>
+                    <span class="iban-code">EE55 7700 7710 0977 1245</span>
+                    <span class="info-label">Пояснение (Arve nr)</span>
+                    <span class="ref-tag" id="billRef">---</span>
+                </div>
+                <p style="font-size: 12px; text-align: center; color: var(--text-secondary); margin-top: 15px;">
+                    Срок оплаты: <strong id="billExpiry">---</strong>
+                </p>
+            </div>
+        </div>
+    </div>
 
     <!-- БЛОК АКТИВНОГО СЕРВИСА -->
     <div id="activeSection" style="display:none;" class="active-card">
@@ -170,7 +197,6 @@
         document.getElementById('clientEmail').innerText = `✉️ ${data.email || ""}`;
         document.getElementById('clientAddressDisplay').innerText = `📍 ${data.city || ""}, ${data.address || ""}`;
 
-        // Заполнение полей формы
         document.getElementById('editPhone').value = data.phone || "";
         document.getElementById('editEmail').value = data.email || "";
         document.getElementById('editCity').value = data.city || "";
@@ -178,16 +204,33 @@
 
         const sDiv = document.getElementById('statusDiv');
         const aSec = document.getElementById('activeSection');
+        const pSec = document.getElementById('paymentSection'); // Блок инвойса
         
+        // Сбрасываем видимость блоков
+        aSec.style.display = 'none';
+        pSec.style.display = 'none';
+        sDiv.style.display = 'block';
+
         if (data.status === 'approved') {
             sDiv.style.display = 'none';
             aSec.style.display = 'block';
             document.getElementById('playlistUrl').innerText = data.playlist || '---';
             document.getElementById('expDate').innerText = data.expiry || '---';
-        } else {
-            sDiv.style.display = 'block';
-            aSec.style.display = 'none';
-            sDiv.innerText = data.status === 'waiting' ? "На рассмотрении" : "Ожидание оплаты";
+        } 
+        else if (data.status === 'pending_payment') {
+            sDiv.innerText = "Ожидание оплаты";
+            sDiv.className = "status-badge pending_payment";
+            pSec.style.display = 'block'; // ПОКАЗЫВАЕМ СЧЕТ
+            
+            // Заполняем данные счета
+            document.getElementById('billNr').innerText = data.arveNr || 'N/A';
+            document.getElementById('billRef').innerText = data.arveNr || 'N/A';
+            document.getElementById('billPrice').innerText = data.price || '0';
+            document.getElementById('billExpiry').innerText = data.expiry || '---';
+        }
+        else {
+            sDiv.innerText = "На рассмотрении";
+            sDiv.className = "status-badge waiting";
         }
 
         const noticeBox = document.getElementById('globalNotice');
@@ -210,38 +253,23 @@
             city: document.getElementById('editCity').value,
             address: document.getElementById('editAddress').value
         };
-
         try {
             if (upData.email !== user.email) await updateEmail(user, upData.email);
             await updateDoc(doc(db, "users", user.uid), upData);
             alert("Данные обновлены!");
             toggleEditForm();
-            sendToTelegram('UPDATE_PROFILE', 'Клиент обновил данные своего профиля.');
         } catch (e) { alert("Ошибка: " + e.message); }
     };
 
-    // РАЗДЕЛЬНЫЕ КНОПКИ
-    window.requestPlaylistUpdate = () => {
-        if(confirm("Запросить обновление ПЛЕЙЛИСТА?")) {
-            sendToTelegram('🔄 ОБНОВИТЬ ПЛЕЙЛИСТ', 'Прошу обновить мой файл плейлиста.');
-        }
-    };
-
-    window.requestServerUpdate = () => {
-        if(confirm("Запросить смену СЕРВЕРА?")) {
-            sendToTelegram('🖥 СМЕНИТЬ СЕРВЕР', 'Прошу сменить сервер вещания на другой.');
-        }
-    };
+    window.requestPlaylistUpdate = () => { if(confirm("Запросить обновление ПЛЕЙЛИСТА?")) sendToTelegram('🔄 ОБНОВИТЬ ПЛЕЙЛИСТ', 'Прошу обновить мой файл плейлиста.'); };
+    window.requestServerUpdate = () => { if(confirm("Запросить смену СЕРВЕРА?")) sendToTelegram('🖥 СМЕНИТЬ СЕРВЕР', 'Прошу сменить сервер вещания на другой.'); };
 
     window.sendToTelegram = async (type, msg) => {
         const botToken = "8544750089:AAHswx71xxvAMp4RyFELZuOY0Vyr9Ywds8A";
         const chatId = "1084236547";
-        
         let text = (type === 'MESSAGE') ? document.getElementById('supportText').value : msg;
         if (!text) return;
-
         const info = `🆔 ТИП: ${type}\n👤 Имя: ${currentData.fname} ${currentData.lname}\n📞 Тел: ${currentData.phone}\n📍 Адрес: ${currentData.city}, ${currentData.address}\n\n💬 Текст: ${text}`;
-
         try {
             const res = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
                 method: 'POST',
@@ -251,9 +279,7 @@
             if (res.ok && type === 'MESSAGE') {
                 document.getElementById('supportForm').style.display = 'none';
                 document.getElementById('supportSuccess').style.display = 'block';
-            } else if (res.ok) {
-                alert("Запрос отправлен!");
-            }
+            } else if (res.ok) { alert("Запрос отправлен!"); }
         } catch (e) { console.error(e); }
     };
 
