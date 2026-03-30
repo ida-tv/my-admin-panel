@@ -21,8 +21,7 @@
         
         h2 { text-align: center; font-weight: 700; margin-bottom: 25px; }
         
-        /* УВЕДОМЛЕНИЕ */
-        .global-notice { display: none; background: #fff9c4; border-radius: 16px; padding: 15px; margin-bottom: 20px; border: 1px solid #ffe58f; position: relative; }
+        .global-notice { display: none; background: #fff9c4; border-radius: 16px; padding: 15px; margin-bottom: 20px; border: 1px solid #ffe58f; }
 
         .status-badge { padding: 12px; border-radius: 12px; font-weight: 600; text-align: center; margin-bottom: 25px; font-size: 15px; }
         .waiting { background: #f5f5f7; color: #86868b; }
@@ -37,7 +36,7 @@
 
         .action-btn { background: var(--white); border: 1px solid var(--primary); color: var(--primary); padding: 10px; border-radius: 10px; font-weight: 600; cursor: pointer; width: 100%; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 13px; transition: 0.2s; text-decoration: none; }
         
-        .download-btn { background: var(--success); color: white !important; border: none; padding: 10px 15px; border-radius: 10px; font-size: 12px; font-weight: 700; cursor: pointer; margin-top: 5px; display: inline-flex; align-items: center; gap: 8px; text-decoration: none; }
+        .download-btn { background: var(--success); color: white !important; border: none; padding: 8px 15px; border-radius: 10px; font-size: 12px; font-weight: 700; cursor: pointer; margin-top: 5px; display: inline-flex; align-items: center; gap: 8px; transition: 0.2s; text-decoration: none; }
 
         .edit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
         .edit-grid input { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; font-size: 13px; }
@@ -50,9 +49,8 @@
 <div class="container">
     <h2 id="welcomeTitle">Личный кабинет</h2>
 
-    <!-- БЛОК СООБЩЕНИЙ -->
     <div id="globalNotice" class="global-notice">
-        <div id="noticeText" style="font-size: 14px; color: #856404; line-height: 1.4;"></div>
+        <div id="noticeText" style="font-size: 14px; color: #856404;"></div>
     </div>
 
     <div class="profile-card">
@@ -74,24 +72,30 @@
                 <input type="text" id="editCity" placeholder="Город">
             </div>
             <input type="text" id="editAddress" placeholder="Адрес" style="width:100%; padding:10px; margin-bottom:8px; border-radius:8px; border:1px solid #ccc; box-sizing: border-box;">
-            <button onclick="updateUserData()" style="width:100%; background:var(--primary); color:white; border:none; padding:12px; border-radius:10px; font-weight:700; cursor:pointer;">Сохранить изменения</button>
+            <button class="btn-send" style="padding:10px; background: var(--primary); color: white; border: none; width: 100%; border-radius: 8px; font-weight: 700;" onclick="updateUserData()">Сохранить изменения</button>
         </div>
     </div>
 
-    <div id="statusDiv" class="status-badge waiting">Загрузка...</div>
+    <div id="statusDiv" class="status-badge waiting">Загрузка данных...</div>
 
     <div id="activeSection" style="display:none;" class="active-card">
         <div style="display: flex; justify-content: space-between; align-items: center;">
             <h3 style="margin: 0; font-size: 18px; color: var(--success);"><i class="fas fa-check-circle"></i> Подписка активна</h3>
             <div id="manualBtnContainer"></div>
         </div>
+        
         <div id="playlistContainer" style="margin-top: 15px;"></div>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 15px;">
+            <button class="action-btn" onclick="requestUpdate('PLAYLIST')"><i class="fas fa-sync"></i> Плейлист</button>
+            <button class="action-btn" onclick="requestUpdate('SERVER')"><i class="fas fa-server"></i> Сервер</button>
+        </div>
         <div style="text-align: right; margin-top: 15px; font-size: 13px;">
             <span class="info-label">Действует до:</span> <strong id="expDate"></strong>
         </div>
     </div>
 
-    <button class="btn-logout" onclick="logout()" style="width:100%; margin-top:20px; background:none; border:none; color:red; cursor:pointer; font-weight:600;">Выйти</button>
+    <button class="btn-logout" onclick="logout()" style="width: 100%; background: none; color: red; border: none; padding: 15px; font-weight: 700; cursor: pointer;">Выйти</button>
 </div>
 
 <script type="module">
@@ -111,89 +115,104 @@
     const db = getFirestore(app);
 
     let currentData = {};
-    let globalBroadcast = "";
+    let globalBroadcastMessage = "";
 
     onAuthStateChanged(auth, (user) => {
         if (user) {
-            // Слушаем данные юзера
-            onSnapshot(doc(db, "users", user.uid), (snap) => {
-                if (snap.exists()) {
-                    currentData = snap.data();
+            onSnapshot(doc(db, "users", user.uid), (docSnap) => {
+                if (docSnap.exists()) {
+                    currentData = docSnap.data();
                     renderUI(currentData);
+                    updateGlobalNotice(); // Важно: обновляем уведомление при изменении данных юзера
                 }
             });
-            // Слушаем рассылку
+
             onSnapshot(doc(db, "settings", "broadcast"), (snap) => {
-                globalBroadcast = (snap.exists()) ? (snap.data().message || "") : "";
-                logicNotice();
+                globalBroadcastMessage = (snap.exists()) ? (snap.data().message || "") : "";
+                updateGlobalNotice();
             });
-        } else { window.location.href = 'login.html'; }
+        } else {
+            window.location.href = 'login.html';
+        }
     });
 
-    // ЖЕСТКАЯ ЛОГИКА СКРЫТИЯ СООБЩЕНИЙ
-    function logicNotice() {
+    function updateGlobalNotice() {
         const box = document.getElementById('globalNotice');
         const txt = document.getElementById('noticeText');
         
-        const personal = (currentData.comment || "").trim();
-        const general = (globalBroadcast || "").trim();
+        const pMsg = (currentData && currentData.comment) ? currentData.comment.trim() : "";
+        const bMsg = globalBroadcastMessage ? globalBroadcastMessage.trim() : "";
+        
+        const finalMsg = pMsg !== "" ? pMsg : bMsg;
 
-        const finalMsg = personal !== "" ? personal : general;
-
-        if (finalMsg === "") {
-            box.style.display = "none";
-            txt.innerHTML = "";
-        } else {
-            box.style.display = "block";
+        if (finalMsg !== "") {
+            box.style.display = 'block';
             txt.innerText = finalMsg;
+        } else {
+            box.style.display = 'none';
+            txt.innerText = "";
         }
     }
 
     function renderUI(data) {
         document.getElementById('clientFullName').innerText = `${data.fname || ""} ${data.lname || ""}`;
         document.getElementById('clientPhone').innerText = `📞 ${data.phone || "---"}`;
+        document.getElementById('clientEmail').innerText = `✉️ ${data.email || ""}`;
         document.getElementById('clientAddressDisplay').innerText = `📍 ${data.city || ""}, ${data.address || ""}`;
-        
+
+        document.getElementById('editFname').value = data.fname || '';
+        document.getElementById('editLname').value = data.lname || '';
+        document.getElementById('editPhone').value = data.phone || '';
+        document.getElementById('editCity').value = data.city || '';
+        document.getElementById('editAddress').value = data.address || '';
+
         const sDiv = document.getElementById('statusDiv');
         const aSec = document.getElementById('activeSection');
         
-        logicNotice(); // Обновляем при каждом рендере
+        aSec.style.display = 'none';
+        sDiv.style.display = 'block';
 
         if (data.status === 'approved') {
             sDiv.style.display = 'none';
             aSec.style.display = 'block';
             document.getElementById('expDate').innerText = data.expiry || '---';
 
-            const cont = document.getElementById('playlistContainer');
-            cont.innerHTML = '';
+            const playlistContainer = document.getElementById('playlistContainer');
+            playlistContainer.innerHTML = '';
             if (data.playlist) {
-                data.playlist.split('|').forEach((item, i) => {
+                const items = data.playlist.split('|');
+                items.forEach((item, index) => {
                     const parts = item.split(':');
-                    const name = parts.length > 1 ? parts[0].trim() : "Плейлист " + (i+1);
-                    const url = parts.length > 1 ? parts.slice(1).join(':').trim() : item.trim();
-                    
-                    cont.innerHTML += `
-                        <div style="margin-bottom:15px; border-bottom:1px solid #eee; padding-bottom:10px;">
-                            <span class="info-label">${name}</span>
+                    let name = "Плейлист " + (index + 1);
+                    let url = item.trim();
+                    if (parts.length > 1) {
+                        name = parts[0].trim();
+                        url = parts.slice(1).join(':').trim();
+                    }
+                    playlistContainer.innerHTML += `
+                        <div style="margin-bottom: 15px; background: rgba(0,0,0,0.03); padding: 12px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.05);">
+                            <span class="info-label" style="color: var(--primary);">${name}:</span>
                             <code onclick="copyToClipboard('${url}')">${url}</code>
-                            <a href="${url}" download="${name}.m3u" target="_blank" class="download-btn">
-                                <i class="fas fa-download"></i> СКАЧАТЬ ФАЙЛ ПЛЕЙЛИСТА
+                            <a href="${url}" target="_blank" class="download-btn">
+                                <i class="fas fa-download"></i> Скачать файл
                             </a>
-                        </div>`;
+                        </div>
+                    `;
                 });
             }
-            
-            const mBtn = document.getElementById('manualBtnContainer');
-            mBtn.innerHTML = data.manual ? `<a href="${data.manual}" target="_blank" class="download-btn" style="background:#007aff"><i class="fas fa-book"></i> Инструкция</a>` : '';
+
+            const manualCont = document.getElementById('manualBtnContainer');
+            if (data.manual) {
+                manualCont.innerHTML = `<a href="${data.manual}" target="_blank" class="action-btn" style="margin:0; padding: 5px 12px; background: var(--success); border:none; color:white; text-decoration: none;"><i class="fas fa-book"></i> Инструкция</a>`;
+            } else { manualCont.innerHTML = ''; }
+        } else if (data.status === 'pending_payment') {
+            sDiv.innerText = "💳 ОЖИДАНИЕ ОПЛАТЫ";
+            sDiv.className = "status-badge pending_payment";
         } else {
-            sDiv.innerText = data.status === 'pending_payment' ? "💳 ОЖИДАЕТ ОПЛАТЫ" : "⏳ НА ПРОВЕРКЕ";
-            aSec.style.display = 'none';
+            sDiv.innerText = "⏳ ЗАЯВКА НА РАССМОТРЕНИИ";
+            sDiv.className = "status-badge waiting";
         }
     }
-
-    window.copyToClipboard = (t) => {
-        navigator.clipboard.writeText(t).then(() => alert("Ссылка скопирована!"));
-    };
 
     window.toggleEditForm = () => {
         const f = document.getElementById('editForm');
@@ -201,16 +220,22 @@
     };
 
     window.updateUserData = async () => {
-        const up = {
+        const updateObj = {
             fname: document.getElementById('editFname').value,
             lname: document.getElementById('editLname').value,
             phone: document.getElementById('editPhone').value,
             city: document.getElementById('editCity').value,
             address: document.getElementById('editAddress').value
         };
-        await updateDoc(doc(db, "users", auth.currentUser.uid), up);
-        alert("Обновлено!");
-        window.toggleEditForm();
+        try {
+            await updateDoc(doc(db, "users", auth.currentUser.uid), updateObj);
+            alert("Данные профиля обновлены!");
+            window.toggleEditForm();
+        } catch (e) { alert("Ошибка сохранения."); }
+    };
+
+    window.copyToClipboard = (text) => {
+        navigator.clipboard.writeText(text).then(() => alert("Ссылка скопирована"));
     };
 
     window.logout = () => signOut(auth).then(() => window.location.href = 'login.html');
