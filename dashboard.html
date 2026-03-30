@@ -17,47 +17,38 @@
         }
 
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg-body); padding: 20px; display: flex; justify-content: center; color: var(--text-main); }
-        .container { max-width: 600px; width: 100%; background: var(--white); padding: 40px; border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.05); box-sizing: border-box; }
+        .container { max-width: 600px; width: 100%; background: var(--white); padding: 30px; border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.05); box-sizing: border-box; }
         
-        h2 { text-align: center; font-weight: 700; margin-bottom: 30px; letter-spacing: -0.5px; }
+        h2 { text-align: center; font-weight: 700; margin-bottom: 25px; }
         
-        .global-notice { display: none; background: #fff9c4; border-radius: 16px; padding: 20px; margin-bottom: 25px; border: 1px solid #ffe58f; animation: fadeIn 0.5s ease; }
-        .notice-title { font-weight: 700; color: #856404; margin-bottom: 4px; font-size: 14px; text-transform: uppercase; }
+        .global-notice { display: none; background: #fff9c4; border-radius: 16px; padding: 15px; margin-bottom: 20px; border: 1px solid #ffe58f; }
 
-        .status-badge { padding: 12px 20px; border-radius: 12px; font-weight: 600; text-align: center; margin-bottom: 30px; font-size: 15px; }
+        .status-badge { padding: 12px; border-radius: 12px; font-weight: 600; text-align: center; margin-bottom: 25px; font-size: 15px; }
         .waiting { background: #f5f5f7; color: #86868b; }
         .pending_payment { background: #eaf2ff; color: var(--primary); }
         .approved { background: #e8f5e9; color: var(--success); }
 
         .profile-card { background: #fff; padding: 20px; border-radius: 16px; border: 1px solid var(--border-color); margin-bottom: 20px; }
-        .info-label { font-size: 12px; color: var(--text-secondary); text-transform: uppercase; font-weight: 600; display: block; margin-bottom: 4px; }
-        .info-value { font-size: 15px; font-weight: 500; line-height: 1.4; }
+        .info-label { font-size: 11px; color: var(--text-secondary); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 4px; }
 
-        .invoice-card { border: 1px solid var(--border-color); border-radius: 16px; margin-top: 20px; background: var(--white); overflow: hidden; }
-        .invoice-header { background: #fbfbfd; border-bottom: 1px solid var(--border-color); padding: 20px; display: flex; justify-content: space-between; align-items: center; }
-        .invoice-header h3 { margin: 0; font-size: 16px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-secondary); }
-        .invoice-logo { font-weight: 800; font-size: 18px; color: var(--primary); }
-        .invoice-body { padding: 25px; }
-        .bank-details { background: #f5f5f7; border-radius: 12px; padding: 20px; }
-        .iban-code { font-family: "SF Mono", "Menlo", monospace; font-size: 17px; font-weight: 700; color: var(--primary); display: block; margin: 8px 0; }
-        .ref-tag { color: var(--text-main); font-weight: 700; background: #fff; padding: 4px 8px; border-radius: 6px; border: 1px solid var(--border-color); }
+        /* СТИЛЬ СЧЕТА */
+        .invoice-card { border: 2px solid var(--primary); border-radius: 18px; margin-top: 10px; background: var(--white); overflow: hidden; animation: fadeIn 0.5s ease; }
+        .invoice-header { background: #fbfbfd; border-bottom: 1px solid var(--border-color); padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; }
+        .invoice-body { padding: 20px; }
+        .bank-details { background: #f5f5f7; border-radius: 12px; padding: 15px; margin-top: 10px; }
+        .iban-code { font-family: monospace; font-size: 16px; font-weight: 700; color: var(--primary); display: block; margin: 5px 0; letter-spacing: 1px; }
+        .ref-tag { font-weight: 800; color: #000; background: #fff; padding: 4px 10px; border-radius: 6px; border: 1.5px solid var(--primary); display: inline-block; margin-top: 5px; }
 
-        .active-card { border: 1px solid #c6e1c6; border-radius: 16px; padding: 30px; background: #f9fff9; margin-top: 20px; }
-        code { display: block; background: #1d1d1f; color: #fff; padding: 16px; border-radius: 12px; word-break: break-all; font-size: 13px; line-height: 1.6; margin: 15px 0; }
+        /* ПЛЕЙЛИСТ */
+        .active-card { border: 1px solid #c6e1c6; border-radius: 16px; padding: 25px; background: #f9fff9; margin-top: 10px; }
+        code { display: block; background: #1d1d1f; color: #fff; padding: 12px; border-radius: 10px; word-break: break-all; font-size: 12px; margin: 10px 0; }
 
-        .action-btn { background: var(--white); border: 1px solid var(--primary); color: var(--primary); padding: 10px 15px; border-radius: 10px; font-weight: 600; cursor: pointer; transition: 0.2s; font-size: 13px; margin-top: 10px; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; }
-        .action-btn:hover { background: var(--primary); color: white; }
+        .action-btn { background: var(--white); border: 1px solid var(--primary); color: var(--primary); padding: 10px; border-radius: 10px; font-weight: 600; cursor: pointer; width: 100%; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 13px; }
         
-        .edit-form { display: none; background: #f9f9f9; padding: 15px; border-radius: 12px; border: 1px solid var(--border-color); margin-top: 15px; }
-        .edit-form input { width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 8px; border: 1px solid var(--border-color); box-sizing: border-box; }
+        .btn-send { width: 100%; background: var(--primary); color: white; border: none; padding: 12px; border-radius: 10px; font-weight: 700; cursor: pointer; margin-top: 10px; }
+        .btn-logout { width: 100%; background: none; color: #ff3b30; border: none; padding: 15px; cursor: pointer; font-weight: 600; }
 
-        .support-card { border: 1px solid var(--primary); border-radius: 16px; padding: 25px; background: #f0f7ff; margin-top: 20px; }
-        .support-textarea { width: 100%; height: 80px; border-radius: 12px; border: 1px solid var(--border-color); padding: 12px; font-family: inherit; font-size: 14px; resize: none; box-sizing: border-box; margin: 10px 0; }
-        
-        .btn-send { width: 100%; background: var(--primary); color: white; border: none; padding: 12px; border-radius: 10px; font-weight: 600; cursor: pointer; transition: 0.2s; }
-        .btn-logout { width: 100%; background: none; color: #ff3b30; border: none; padding: 15px; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 20px; }
-
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
@@ -66,96 +57,86 @@
     <h2 id="welcomeTitle">Личный кабинет</h2>
 
     <div id="globalNotice" class="global-notice">
-        <div class="notice-title">Сообщение</div>
-        <div id="noticeText"></div>
+        <div id="noticeText" style="font-size: 14px; color: #856404;"></div>
     </div>
 
     <!-- ПРОФИЛЬ -->
     <div class="profile-card">
-        <span class="info-label">Ваш профиль</span>
-        <div id="displayProfile">
-            <div class="info-value"><strong id="clientFullName"></strong></div>
-            <div class="info-value" id="clientPhone"></div>
-            <div class="info-value" id="clientEmail"></div>
-            <div class="info-value" id="clientAddressDisplay" style="font-size: 13px; color: var(--text-secondary);"></div>
-        </div>
+        <span class="info-label">Ваши данные</span>
+        <div id="clientFullName" style="font-weight: 700; font-size: 18px;"></div>
+        <div id="clientPhone" style="font-size: 14px; color: var(--text-secondary);"></div>
+        <div id="clientEmail" style="font-size: 14px; color: var(--text-secondary);"></div>
+        <div id="clientAddressDisplay" style="font-size: 13px; color: var(--text-secondary); margin-top: 5px;"></div>
         
-        <button class="action-btn" onclick="toggleEditForm()"><i class="fas fa-user-edit"></i> Изменить данные</button>
-        
-        <div id="editForm" class="edit-form">
-            <input type="text" id="editPhone" placeholder="Телефон">
-            <input type="email" id="editEmail" placeholder="Email">
-            <input type="text" id="editCity" placeholder="Город">
-            <input type="text" id="editAddress" placeholder="Адрес">
-            <button class="btn-send" onclick="updateUserData()">💾 Сохранить данные</button>
+        <button class="action-btn" onclick="toggleEditForm()"><i class="fas fa-edit"></i> Редактировать профиль</button>
+        <div id="editForm" style="display:none; margin-top:10px;">
+            <input type="text" id="editPhone" placeholder="Телефон" style="width:100%; padding:8px; margin-bottom:5px; border-radius:5px; border:1px solid #ccc;">
+            <button class="btn-send" style="padding:8px;" onclick="updateUserData()">Сохранить</button>
         </div>
     </div>
 
-    <div id="statusDiv" class="status-badge waiting">Загрузка...</div>
+    <div id="statusDiv" class="status-badge waiting">Загрузка данных...</div>
 
-    <!-- БЛОК СЧЕТА (ИНВОЙСА) -->
+    <!-- БЛОК СЧЕТА (PENDING_PAYMENT) -->
     <div id="paymentSection" style="display:none;">
         <div class="invoice-card">
             <div class="invoice-header">
-                <h3>Инвойс / Счет</h3>
-                <div class="invoice-logo">IDA TV</div>
+                <span style="font-weight: 800; color: var(--primary);">СЧЕТ НА ОПЛАТУ</span>
+                <span id="billNr" style="font-weight: 700;"></span>
             </div>
             <div class="invoice-body">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
-                    <div>
-                        <span class="info-label">Номер счета</span>
-                        <div class="info-value" id="billNr">---</div>
-                    </div>
-                    <div style="text-align: right;">
-                        <span class="info-label">К оплате</span>
-                        <div class="info-value" style="font-size: 22px; color: var(--primary);"><span id="billPrice">0</span> €</div>
-                    </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <span class="info-label">Сумма к оплате:</span>
+                    <span style="font-size: 26px; font-weight: 800; color: #1d1d1f;"><span id="billPrice">0</span> €</span>
                 </div>
+                
                 <div class="bank-details">
-                    <span class="info-label">IBAN для оплаты</span>
+                    <span class="info-label">Получатель (Saaja):</span>
+                    <strong style="font-size: 15px;">Artjom Fjodorov</strong>
+                    
+                    <span class="info-label" style="margin-top: 10px;">Банк (Pank):</span>
+                    <strong>LHV Pank (LHVBEE22)</strong>
+                    
+                    <span class="info-label" style="margin-top: 10px;">Счёт (IBAN):</span>
                     <span class="iban-code">EE55 7700 7710 0977 1245</span>
-                    <span class="info-label">Пояснение (Arve nr)</span>
-                    <span class="ref-tag" id="billRef">---</span>
+                    
+                    <span class="info-label" style="margin-top: 10px; color: #d32f2f;">Пояснение (Selgitus):</span>
+                    <div style="font-size: 13px; margin-bottom: 5px;">Обязательно укажите:</div>
+                    <span class="ref-tag">Arve nr: <span id="billRef"></span></span>
                 </div>
-                <p style="font-size: 12px; text-align: center; color: var(--text-secondary); margin-top: 15px;">
-                    Срок оплаты: <strong id="billExpiry">---</strong>
-                </p>
+
+                <div style="font-size: 11px; color: var(--text-secondary); text-align: center; margin-top: 15px;">
+                    Пожалуйста, оплатите до: <strong id="billExpiry"></strong>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- БЛОК АКТИВНОГО СЕРВИСА -->
+    <!-- АКТИВНЫЙ ПЛЕЙЛИСТ (APPROVED) -->
     <div id="activeSection" style="display:none;" class="active-card">
-        <h3 style="color: #1a1a1a; margin: 0; font-size: 20px;">Подписка активна</h3>
-        <p class="info-label">Ваш плейлист</p>
+        <h3 style="margin: 0; font-size: 18px; color: var(--success);"><i class="fas fa-check-circle"></i> Подписка активна</h3>
+        <p class="info-label" style="margin-top: 10px;">Ваш плейлист (URL):</p>
         <code id="playlistUrl"></code>
         
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-            <button class="action-btn" onclick="requestPlaylistUpdate()">
-                <i class="fas fa-sync-alt"></i> Плейлист
-            </button>
-            <button class="action-btn" onclick="requestServerUpdate()">
-                <i class="fas fa-server"></i> Сервер
-            </button>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+            <button class="action-btn" onclick="requestUpdate('PLAYLIST')"><i class="fas fa-sync"></i> Плейлист</button>
+            <button class="action-btn" onclick="requestUpdate('SERVER')"><i class="fas fa-server"></i> Сервер</button>
         </div>
-
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid #e1eee1;">
-            <span class="info-label" style="margin: 0;">До:</span>
-            <span style="font-weight: 700; color: #2e7d32;" id="expDate"></span>
+        <div style="text-align: right; margin-top: 15px; font-size: 13px;">
+            <span class="info-label">Действует до:</span> <strong id="expDate"></strong>
         </div>
     </div>
 
-    <!-- ОБРАТНАЯ СВЯЗЬ -->
+    <!-- ПОДДЕРЖКА -->
     <div id="supportBox" class="support-card">
         <div id="supportForm">
-            <h3 style="color: var(--primary); margin: 0; font-size: 18px;">Написать поддержку</h3>
-            <textarea id="supportText" class="support-textarea" placeholder="Сообщение..."></textarea>
-            <button id="supportBtn" class="btn-send" onclick="sendToTelegram('MESSAGE')">🚀 Отправить сообщение</button>
+            <span class="info-label">Связь с администрацией</span>
+            <textarea id="supportText" class="support-textarea" placeholder="Напишите ваш вопрос..."></textarea>
+            <button id="supportBtn" class="btn-send" onclick="sendToTelegram('MESSAGE')">Отправить в Telegram</button>
         </div>
-        <div id="supportSuccess" style="display: none; text-align: center;">
-            <i class="fas fa-check-circle" style="font-size: 30px; color: var(--success);"></i>
-            <p>Отправлено! <br> <strong>Info IDA TV</strong></p>
-            <button onclick="resetSupport()" style="border:none; background:none; color:var(--primary); cursor:pointer;">Написать еще</button>
+        <div id="supportSuccess" style="display: none; text-align: center; padding: 10px;">
+            <i class="fas fa-check-circle" style="color: var(--success); font-size: 24px;"></i>
+            <p style="font-size: 14px;">Сообщение доставлено! <br><strong>Info IDA TV</strong></p>
         </div>
     </div>
 
@@ -164,7 +145,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signOut, updateEmail } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
     import { getFirestore, doc, onSnapshot, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -197,18 +178,12 @@
         document.getElementById('clientEmail').innerText = `✉️ ${data.email || ""}`;
         document.getElementById('clientAddressDisplay').innerText = `📍 ${data.city || ""}, ${data.address || ""}`;
 
-        document.getElementById('editPhone').value = data.phone || "";
-        document.getElementById('editEmail').value = data.email || "";
-        document.getElementById('editCity').value = data.city || "";
-        document.getElementById('editAddress').value = data.address || "";
-
         const sDiv = document.getElementById('statusDiv');
+        const pSec = document.getElementById('paymentSection');
         const aSec = document.getElementById('activeSection');
-        const pSec = document.getElementById('paymentSection'); // Блок инвойса
         
-        // Сбрасываем видимость блоков
-        aSec.style.display = 'none';
         pSec.style.display = 'none';
+        aSec.style.display = 'none';
         sDiv.style.display = 'block';
 
         if (data.status === 'approved') {
@@ -218,18 +193,17 @@
             document.getElementById('expDate').innerText = data.expiry || '---';
         } 
         else if (data.status === 'pending_payment') {
-            sDiv.innerText = "Ожидание оплаты";
+            sDiv.innerText = "💳 ОЖИДАНИЕ ОПЛАТЫ";
             sDiv.className = "status-badge pending_payment";
-            pSec.style.display = 'block'; // ПОКАЗЫВАЕМ СЧЕТ
+            pSec.style.display = 'block';
             
-            // Заполняем данные счета
-            document.getElementById('billNr').innerText = data.arveNr || 'N/A';
-            document.getElementById('billRef').innerText = data.arveNr || 'N/A';
+            document.getElementById('billNr').innerText = `№ ${data.arveNr || '---'}`;
+            document.getElementById('billRef').innerText = data.arveNr || '---';
             document.getElementById('billPrice').innerText = data.price || '0';
             document.getElementById('billExpiry').innerText = data.expiry || '---';
-        }
+        } 
         else {
-            sDiv.innerText = "На рассмотрении";
+            sDiv.innerText = "⏳ ЗАЯВКА НА РАССМОТРЕНИИ";
             sDiv.className = "status-badge waiting";
         }
 
@@ -246,30 +220,26 @@
     };
 
     window.updateUserData = async () => {
-        const user = auth.currentUser;
-        const upData = {
-            phone: document.getElementById('editPhone').value,
-            email: document.getElementById('editEmail').value,
-            city: document.getElementById('editCity').value,
-            address: document.getElementById('editAddress').value
-        };
         try {
-            if (upData.email !== user.email) await updateEmail(user, upData.email);
-            await updateDoc(doc(db, "users", user.uid), upData);
-            alert("Данные обновлены!");
+            await updateDoc(doc(db, "users", auth.currentUser.uid), {
+                phone: document.getElementById('editPhone').value
+            });
+            alert("Сохранено!");
             toggleEditForm();
-        } catch (e) { alert("Ошибка: " + e.message); }
+        } catch (e) { alert("Ошибка!"); }
     };
 
-    window.requestPlaylistUpdate = () => { if(confirm("Запросить обновление ПЛЕЙЛИСТА?")) sendToTelegram('🔄 ОБНОВИТЬ ПЛЕЙЛИСТ', 'Прошу обновить мой файл плейлиста.'); };
-    window.requestServerUpdate = () => { if(confirm("Запросить смену СЕРВЕРА?")) sendToTelegram('🖥 СМЕНИТЬ СЕРВЕР', 'Прошу сменить сервер вещания на другой.'); };
+    window.requestUpdate = (type) => {
+        const label = type === 'PLAYLIST' ? 'ОБНОВЛЕНИЕ ПЛЕЙЛИСТА' : 'СМЕНУ СЕРВЕРА';
+        if(confirm(`Запросить ${label}?`)) sendToTelegram(type, `Запрос: ${label}`);
+    };
 
     window.sendToTelegram = async (type, msg) => {
         const botToken = "8544750089:AAHswx71xxvAMp4RyFELZuOY0Vyr9Ywds8A";
         const chatId = "1084236547";
         let text = (type === 'MESSAGE') ? document.getElementById('supportText').value : msg;
         if (!text) return;
-        const info = `🆔 ТИП: ${type}\n👤 Имя: ${currentData.fname} ${currentData.lname}\n📞 Тел: ${currentData.phone}\n📍 Адрес: ${currentData.city}, ${currentData.address}\n\n💬 Текст: ${text}`;
+        const info = `🆔 [${type}]\n👤 Клиент: ${currentData.fname} ${currentData.lname}\n📞 Тел: ${currentData.phone}\n\n💬 Текст: ${text}`;
         try {
             const res = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
                 method: 'POST',
@@ -281,12 +251,6 @@
                 document.getElementById('supportSuccess').style.display = 'block';
             } else if (res.ok) { alert("Запрос отправлен!"); }
         } catch (e) { console.error(e); }
-    };
-
-    window.resetSupport = () => {
-        document.getElementById('supportText').value = "";
-        document.getElementById('supportForm').style.display = 'block';
-        document.getElementById('supportSuccess').style.display = 'none';
     };
 
     window.logout = () => signOut(auth).then(() => window.location.href = 'login.html');
