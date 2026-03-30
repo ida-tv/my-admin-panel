@@ -44,7 +44,6 @@
         .action-btn { background: var(--white); border: 1px solid var(--primary); color: var(--primary); padding: 10px; border-radius: 10px; font-weight: 600; cursor: pointer; width: 100%; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 13px; transition: 0.2s; }
         .action-btn:hover { background: var(--primary); color: white; }
         
-        /* КРАСИВОЕ ОКНО ПОДДЕРЖКИ */
         .support-card { border: none; border-radius: 20px; padding: 0; background: #ffffff; margin-top: 25px; box-shadow: 0 10px 25px rgba(0,122,255,0.1); overflow: hidden; }
         .support-header { background: var(--primary); padding: 15px 20px; color: white; display: flex; align-items: center; gap: 12px; }
         .support-header h3 { margin: 0; font-size: 16px; font-weight: 600; }
@@ -56,7 +55,6 @@
         .btn-send:hover { background: #0056b3; }
         .btn-logout { width: 100%; background: none; color: #ff3b30; border: none; padding: 15px; cursor: pointer; font-weight: 600; margin-top: 10px; }
 
-        /* ИСПРАВЛЕНИЕ: СТИЛИ ДЛЯ РАСШИРЕННОЙ ФОРМЫ */
         .edit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
         .edit-grid input { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; font-size: 13px; }
 
@@ -72,7 +70,6 @@
         <div id="noticeText" style="font-size: 14px; color: #856404;"></div>
     </div>
 
-    <!-- ПРОФИЛЬ -->
     <div class="profile-card">
         <span class="info-label">Ваши данные</span>
         <div id="clientFullName" style="font-weight: 700; font-size: 18px;"></div>
@@ -82,7 +79,6 @@
         
         <button class="action-btn" onclick="toggleEditForm()"><i class="fas fa-edit"></i> Редактировать профиль</button>
         
-        <!-- ИСПРАВЛЕНИЕ: ПОЛНАЯ ФОРМА РЕДАКТИРОВАНИЯ -->
         <div id="editForm" style="display:none; margin-top:10px; padding: 15px; background: #f9f9f9; border-radius: 12px;">
             <div class="edit-grid">
                 <input type="text" id="editFname" placeholder="Имя">
@@ -99,7 +95,6 @@
 
     <div id="statusDiv" class="status-badge waiting">Загрузка данных...</div>
 
-    <!-- БЛОК СЧЕТА -->
     <div id="paymentSection" style="display:none;">
         <div class="invoice-card">
             <div class="invoice-header">
@@ -130,15 +125,12 @@
         </div>
     </div>
 
-    <!-- АКТИВНЫЙ ПЛЕЙЛИСТ -->
     <div id="activeSection" style="display:none;" class="active-card">
         <div style="display: flex; justify-content: space-between; align-items: center;">
             <h3 style="margin: 0; font-size: 18px; color: var(--success);"><i class="fas fa-check-circle"></i> Подписка активна</h3>
-            <!-- ИСПРАВЛЕНИЕ: КОНТЕЙНЕР ДЛЯ КНОПКИ ИНСТРУКЦИИ -->
             <div id="manualBtnContainer"></div>
         </div>
         
-        <!-- ИСПРАВЛЕНИЕ: КОНТЕЙНЕР ДЛЯ ДИНАМИЧЕСКИХ ПЛЕЙЛИСТОВ -->
         <div id="playlistContainer" style="margin-top: 15px;"></div>
         
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 15px;">
@@ -150,7 +142,6 @@
         </div>
     </div>
 
-    <!-- ТЕХПОДДЕРЖКА -->
     <div id="supportBox" class="support-card">
         <div id="supportForm">
             <div class="support-header">
@@ -192,6 +183,7 @@
     const db = getFirestore(app);
 
     let currentData = {};
+    let globalBroadcastMessage = "";
 
     onAuthStateChanged(auth, (user) => {
         if (user) {
@@ -200,21 +192,34 @@
                     currentData = docSnap.data();
                     renderUI(currentData);
                 }
-            }, (error) => console.error("Ошибка получения данных:", error));
-
-            // ИСПРАВЛЕНИЕ: СЛУШАТЕЛЬ ГЛОБАЛЬНОЙ РАССЫЛКИ
-            onSnapshot(doc(db, "settings", "broadcast"), (snap) => {
-                const box = document.getElementById('globalNotice');
-                if (snap.exists() && snap.data().message) {
-                    box.style.display = 'block';
-                    document.getElementById('noticeText').innerText = snap.data().message;
-                } else { box.style.display = 'none'; }
             });
 
+            onSnapshot(doc(db, "settings", "broadcast"), (snap) => {
+                globalBroadcastMessage = (snap.exists()) ? snap.data().message : "";
+                updateGlobalNotice();
+            });
         } else {
             window.location.href = 'login.html';
         }
     });
+
+    function updateGlobalNotice() {
+        const box = document.getElementById('globalNotice');
+        const txt = document.getElementById('noticeText');
+        
+        // Личное сообщение из базы (comment) имеет приоритет перед рассылкой
+        const messageToShow = (currentData.comment && currentData.comment.trim() !== "") 
+            ? currentData.comment 
+            : globalBroadcastMessage;
+
+        if (messageToShow && messageToShow.trim() !== "") {
+            box.style.display = 'block';
+            txt.innerText = messageToShow;
+        } else {
+            box.style.display = 'none';
+            txt.innerText = "";
+        }
+    }
 
     function renderUI(data) {
         document.getElementById('clientFullName').innerText = `${data.fname || ""} ${data.lname || ""}`;
@@ -222,7 +227,6 @@
         document.getElementById('clientEmail').innerText = `✉️ ${data.email || ""}`;
         document.getElementById('clientAddressDisplay').innerText = `📍 ${data.city || ""}, ${data.address || ""}`;
 
-        // Заполнение полей редактирования значениями из БД
         document.getElementById('editFname').value = data.fname || '';
         document.getElementById('editLname').value = data.lname || '';
         document.getElementById('editPhone').value = data.phone || '';
@@ -237,12 +241,13 @@
         aSec.style.display = 'none';
         sDiv.style.display = 'block';
 
+        updateGlobalNotice();
+
         if (data.status === 'approved') {
             sDiv.style.display = 'none';
             aSec.style.display = 'block';
             document.getElementById('expDate').innerText = data.expiry || '---';
 
-            // ИСПРАВЛЕНИЕ: ЛОГИКА ДИНАМИЧЕСКИХ ПЛЕЙЛИСТОВ (Имя: Ссылка)
             const playlistContainer = document.getElementById('playlistContainer');
             playlistContainer.innerHTML = '';
             if (data.playlist) {
@@ -264,7 +269,6 @@
                 });
             }
 
-            // ИСПРАВЛЕНИЕ: КНОПКА ИНСТРУКЦИИ
             const manualCont = document.getElementById('manualBtnContainer');
             if (data.manual) {
                 manualCont.innerHTML = `<a href="${data.manual}" target="_blank" class="action-btn" style="margin:0; padding: 5px 12px; background: var(--success); border:none; color:white;"><i class="fas fa-book"></i> Инструкция</a>`;
@@ -284,14 +288,6 @@
             sDiv.innerText = "⏳ ЗАЯВКА НА РАССМОТРЕНИИ";
             sDiv.className = "status-badge waiting";
         }
-
-        const noticeBox = document.getElementById('globalNotice');
-        if (data.comment) {
-            noticeBox.style.display = 'block';
-            document.getElementById('noticeText').innerText = data.comment;
-        } else if (!document.getElementById('noticeText').innerText) {
-            noticeBox.style.display = 'none';
-        }
     }
 
     window.toggleEditForm = () => {
@@ -299,7 +295,6 @@
         f.style.display = f.style.display === 'none' ? 'block' : 'none';
     };
 
-    // ИСПРАВЛЕНИЕ: ПОЛНОЕ ОБНОВЛЕНИЕ ДАННЫХ ПРОФИЛЯ
     window.updateUserData = async () => {
         const updateObj = {
             fname: document.getElementById('editFname').value,
@@ -320,14 +315,14 @@
 
     window.copyToClipboard = (text) => {
         navigator.clipboard.writeText(text).then(() => {
-            alert("Ссылка скопирована в буфер обмена");
+            alert("Ссылка скопирована");
         });
     };
 
     window.requestUpdate = (type) => {
         const label = type === 'PLAYLIST' ? 'ОБНОВЛЕНИЕ ПЛЕЙЛИСТА' : 'СМЕНУ СЕРВЕРА';
         if(confirm(`Запросить ${label}?`)) {
-            window.sendToTelegram(type, `🚨 Запрос клиента: ${label}`);
+            window.sendToTelegram(type, `🚨 Запрос: ${label}`);
         }
     };
 
@@ -335,9 +330,8 @@
         const botToken = "8544750089:AAHswx71xxvAMp4RyFELZuOY0Vyr9Ywds8A";
         const chatId = "1084236547";
         const textarea = document.getElementById('supportText');
-        
         let text = (type === 'MESSAGE') ? textarea.value : msg;
-        if (!text || text.trim() === "") return alert("Напишите текст сообщения.");
+        if (!text || text.trim() === "") return alert("Введите текст.");
 
         const info = `🆔 [${type}]\n👤 Клиент: ${currentData.fname} ${currentData.lname}\n📞 Тел: ${currentData.phone}\n📍 Адрес: ${currentData.city}, ${currentData.address}\n\n💬 Текст: ${text}`;
 
@@ -353,15 +347,10 @@
                     document.getElementById('supportSuccess').style.display = 'block';
                     textarea.value = "";
                 } else {
-                    alert("Запрос отправлен администрации!");
+                    alert("Отправлено!");
                 }
-            } else {
-                alert("Ошибка отправки сообщения.");
             }
-        } catch (e) { 
-            console.error(e);
-            alert("Ошибка сети."); 
-        }
+        } catch (e) { console.error(e); }
     };
 
     window.resetSupport = () => {
