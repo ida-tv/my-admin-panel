@@ -21,11 +21,9 @@
         
         h2 { text-align: center; font-weight: 700; margin-bottom: 25px; }
         
-        /* Стили для уведомления с колокольчиком */
         .global-notice { display: none; background: #fff9c4; border-radius: 16px; padding: 15px; margin-bottom: 20px; border: 1px solid #ffe58f; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
         .notice-content { display: flex; align-items: center; gap: 12px; font-size: 14px; color: #856404; line-height: 1.4; justify-content: center; }
         
-        /* Анимация колокольчика */
         .fa-bell { color: #f57c00; animation: ring 2s infinite; }
 
         @keyframes ring {
@@ -83,7 +81,6 @@
 <div class="container">
     <h2 id="welcomeTitle">Личный кабинет</h2>
 
-    <!-- Блок уведомлений исправлен: добавлен контейнер для иконки и текста -->
     <div id="globalNotice" class="global-notice">
         <div class="notice-content">
             <i class="fas fa-bell"></i>
@@ -216,7 +213,6 @@
                 if (docSnap.exists()) {
                     currentData = docSnap.data();
                     renderUI(currentData);
-                    updateGlobalNotice();
                 }
             });
 
@@ -243,7 +239,6 @@
             txt.innerText = messageToShow;
         } else {
             box.style.display = 'none';
-            txt.innerText = "";
         }
     }
 
@@ -265,6 +260,10 @@
         
         pSec.style.display = 'none';
         aSec.style.display = 'none';
+        sDiv.style.display = 'block'; // По умолчанию показываем статус
+
+        // ВЫЗЫВАЕМ ОБНОВЛЕНИЕ СООБЩЕНИЯ ВСЕГДА
+        updateGlobalNotice();
 
         if (data.status === 'approved') {
             sDiv.style.display = 'none';
