@@ -232,6 +232,9 @@
         const personalMsg = (currentData.comment || "").trim();
         const broadcastMsg = (globalBroadcastMessage || "").trim();
 
+        // ИСПРАВЛЕННАЯ ЛОГИКА: 
+        // Если у пользователя есть ЛИЧНЫЙ комментарий - показываем его.
+        // Если нет личного комментария, но есть ОБЩАЯ рассылка - показываем рассылку.
         const messageToShow = personalMsg !== "" ? personalMsg : broadcastMsg;
 
         if (messageToShow !== "") {
@@ -260,9 +263,8 @@
         
         pSec.style.display = 'none';
         aSec.style.display = 'none';
-        sDiv.style.display = 'block'; // По умолчанию показываем статус
+        sDiv.style.display = 'block';
 
-        // ВЫЗЫВАЕМ ОБНОВЛЕНИЕ СООБЩЕНИЯ ВСЕГДА
         updateGlobalNotice();
 
         if (data.status === 'approved') {
