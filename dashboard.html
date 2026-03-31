@@ -41,6 +41,8 @@
         .active-card { border: 1px solid #c6e1c6; border-radius: 16px; padding: 25px; background: #f9fff9; margin-top: 10px; }
         code { display: block; background: #1d1d1f; color: #fff; padding: 12px; border-radius: 10px; word-break: break-all; font-size: 12px; margin: 10px 0; cursor: pointer; }
 
+        .update-note { background: #fff3e0; border-left: 4px solid #ff9800; padding: 10px; font-size: 12px; color: #e65100; margin-top: 15px; border-radius: 4px; line-height: 1.4; }
+
         .action-btn { background: var(--white); border: 1px solid var(--primary); color: var(--primary); padding: 10px; border-radius: 10px; font-weight: 600; cursor: pointer; width: 100%; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 13px; transition: 0.2s; }
         .action-btn:hover { background: var(--primary); color: white; }
         
@@ -133,7 +135,11 @@
         
         <div id="playlistContainer" style="margin-top: 15px;"></div>
         
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 15px;">
+        <div class="update-note">
+            <strong>Примечание:</strong> Обновление занимает от 30 минут до 1 часа. Уведомление появится вверху кабинета.
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px;">
             <button class="action-btn" onclick="requestUpdate('PLAYLIST')"><i class="fas fa-sync"></i>Обновить Плейлист</button>
             <button class="action-btn" onclick="requestUpdate('SERVER')"><i class="fas fa-server"></i>Обновить Сервер</button>
         </div>
@@ -255,7 +261,6 @@
                     let name = "Ваш плейлист";
                     let url = item.trim();
                     
-                    // Проверяем, есть ли двоеточие и не является ли оно частью протокола http:// или https://
                     if (separatorIndex !== -1 && !item.trim().toLowerCase().startsWith('http')) {
                         name = item.substring(0, separatorIndex).trim();
                         url = item.substring(separatorIndex + 1).trim();
