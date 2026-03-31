@@ -43,7 +43,7 @@
         }
         .nav-link.active { background: rgba(0, 122, 255, 0.15); color: var(--accent); font-weight: 700; }
 
-        .main { margin-left: 260px; width: 100%; padding: 40px; box-sizing: border-box; }
+        .main { margin-left: 260px; width: 100%; padding: 40px; box-sizing: border-box; transition: 0.3s; }
 
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
         
@@ -52,7 +52,6 @@
         .stat-card .label { font-size: 11px; color: var(--text-gray); text-transform: uppercase; font-weight: 700; }
         .stat-card .value { font-size: 26px; font-weight: 800; margin-top: 5px; color: var(--accent); }
 
-        /* МАССОВАЯ РАССЫЛКА СТИЛИ */
         .broadcast-card {
             background: #ffffff; border: 2px solid var(--accent);
             border-radius: 18px; padding: 20px; margin-bottom: 30px; box-shadow: 0 8px 20px rgba(0,122,255,0.12);
@@ -81,8 +80,8 @@
         }
         .info-group { display: flex; flex-direction: column; gap: 4px; }
         .label-sm { font-size: 10px; font-weight: 700; color: var(--text-gray); text-transform: uppercase; }
-        .val { font-size: 13px; font-weight: 500; }
-        .pass-tag { background: #fff0f0; color: #ff3b30; padding: 2px 5px; border-radius: 4px; font-family: monospace; font-size: 12px; font-weight: 700; }
+        .val { font-size: 13px; font-weight: 500; word-break: break-all; }
+        .pass-tag { background: #fff0f0; color: #ff3b30; padding: 2px 5px; border-radius: 4px; font-family: monospace; font-size: 12px; font-weight: 700; display: inline-block; }
 
         input, select, textarea {
             width: 100%; padding: 9px; border: 1px solid #c2c9d1; border-radius: 8px;
@@ -99,9 +98,27 @@
         .btn-broadcast { background: var(--accent); color: white; padding: 10px 20px; flex: 2; }
         .btn-clear { background: #6e6e73; color: white; padding: 10px 20px; flex: 1; }
         
-        .pagination { display: flex; justify-content: center; gap: 8px; margin: 30px 0; }
+        .pagination { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; margin: 30px 0; }
         .page-btn { padding: 8px 14px; background: white; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; font-weight: 600; }
         .page-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+
+        /* МОБИЛЬНАЯ АДАПТАЦИЯ */
+        @media (max-width: 1024px) {
+            body { flex-direction: column; }
+            .sidebar { width: 100%; height: auto; position: relative; padding: 15px; border-right: none; border-bottom: 1px solid var(--border); }
+            .logo { margin-bottom: 15px; text-align: center; }
+            .nav-link { display: inline-flex; margin-right: 10px; }
+            .main { margin-left: 0; padding: 20px; }
+            .stats-grid { grid-template-columns: 1fr 1fr; }
+            .user-card { grid-template-columns: 1fr; gap: 20px; }
+            .header { flex-direction: column; text-align: center; gap: 10px; }
+        }
+
+        @media (max-width: 480px) {
+            .stats-grid { grid-template-columns: 1fr; }
+            .broadcast-actions { flex-direction: column; }
+            .nav-link { width: 100%; box-sizing: border-box; }
+        }
     </style>
 </head>
 <body>
@@ -110,7 +127,7 @@
     <div class="logo">IDA <span>TV</span></div>
     <a href="#" class="nav-link active"><i class="fas fa-users"></i> База клиентов</a>
     <a href="https://ida-tv-setup-tv-admin.vercel.app/" target="_blank" class="nav-link"><i class="fas fa-link"></i> Панель 2</a>
-    <a href="#" class="nav-link" onclick="adminLogout()" style="margin-top: 40vh;"><i class="fas fa-power-off"></i> Выйти</a>
+    <a href="#" class="nav-link" onclick="adminLogout()" id="logoutBtn"><i class="fas fa-power-off"></i> Выйти</a>
 </div>
 
 <div class="main">
@@ -126,19 +143,18 @@
         <div class="stat-card"><span class="label">Оплата</span><div class="value" id="statPay" style="color:#5856d6">0</div></div>
     </div>
 
-    <!-- НОВЫЙ БЛОК: МАССОВАЯ РАССЫЛКА -->
     <div class="broadcast-card">
         <h3><i class="fas fa-bullhorn"></i> Массовая рассылка всем клиентам</h3>
-        <textarea id="massMsg" placeholder="Этот текст увидят все клиенты в поле 'Сообщение от администрации'..."></textarea>
+        <textarea id="massMsg" placeholder="Этот текст увидят все клиенты..."></textarea>
         <div class="broadcast-actions">
             <button class="btn btn-broadcast" onclick="sendBroadcast()">🚀 Отправить всем</button>
-            <button class="btn btn-clear" onclick="clearAllBroadcasts()">🗑 Удалить рассылку у всех</button>
+            <button class="btn btn-clear" onclick="clearAllBroadcasts()">🗑 Удалить рассылку</button>
         </div>
     </div>
 
     <div class="search-box">
         <i class="fas fa-search"></i>
-        <input type="text" id="searchInput" placeholder="Поиск (Имя, Почта, Телефон, Город...)" oninput="handleSearch()">
+        <input type="text" id="searchInput" placeholder="Поиск (Имя, Почта, Телефон...)" oninput="handleSearch()">
     </div>
 
     <div id="usersContainer"></div>
@@ -166,7 +182,10 @@
     let currentPage = 1;
     const itemsPerPage = 10;
 
-    setInterval(() => { document.getElementById('liveTime').innerText = new Date().toLocaleTimeString(); }, 1000);
+    setInterval(() => { 
+        const liveTimeEl = document.getElementById('liveTime');
+        if(liveTimeEl) liveTimeEl.innerText = new Date().toLocaleTimeString(); 
+    }, 1000);
 
     onSnapshot(collection(db, "users"), (snap) => {
         allUsers = [];
@@ -192,7 +211,7 @@
         renderPage();
     };
 
-    function renderPage() {
+    window.renderPage = () => {
         const container = document.getElementById('usersContainer');
         container.innerHTML = "";
         const start = (currentPage - 1) * itemsPerPage;
@@ -207,7 +226,7 @@
                     <span class="val"><strong>${u.fname || ''} ${u.lname || ''}</strong></span>
                     <span class="val" style="color:var(--accent); font-size:11px">${u.regDate || ''}</span>
                     <span class="label-sm" style="margin-top:8px">Пароль</span>
-                    <span class="pass-tag">${u.pass || '—'}</span>
+                    <span class="pass-tag">${u.password || u.pass || '—'}</span>
                 </div>
                 <div class="info-group">
                     <span class="label-sm">Контакты и Адрес</span>
@@ -222,8 +241,7 @@
                         <option value="pending_payment" ${u.status=='pending_payment'?'selected':''}>💳 Оплата</option>
                         <option value="approved" ${u.status=='approved'?'selected':''}>✅ Одобрено</option>
                     </select>
-                    <span class="val" style="font-size:11px; color:#0056b3;">${u.service || ''}</span>
-                    <span class="val" style="font-size:10px;">Устройств: ${u.count || 1}</span>
+                    <span class="val" style="color:#0056b3;">${u.service || ''}</span>
                 </div>
                 <div class="info-group">
                     <span class="label-sm">Плейлист & Инструкция</span>
@@ -231,16 +249,13 @@
                     <input type="text" id="mn-${u.id}" value="${u.manual||''}" placeholder="Инструкция" style="margin-top:5px">
                 </div>
                 <div class="info-group">
-                    <span class="label-sm">Биллинг & Сообщение</span>
-                    <div style="margin-bottom: 5px;">
-                        <span style="font-size: 10px; color: #666;">Arve nr:</span>
-                        <input type="text" id="ar-${u.id}" value="${u.arveNr||''}" placeholder="Номер счета">
-                    </div>
+                    <span class="label-sm">Биллинг</span>
+                    <input type="text" id="ar-${u.id}" value="${u.arveNr||''}" placeholder="№ счета">
                     <div class="billing-row">
-                        <input type="text" id="pr-${u.id}" value="${u.price||''}" placeholder="€ Сумма">
-                        <input type="text" id="ex-${u.id}" value="${u.expiry||''}" placeholder="Срок (дата)">
+                        <input type="text" id="pr-${u.id}" value="${u.price||''}" placeholder="€">
+                        <input type="text" id="ex-${u.id}" value="${u.expiry||''}" placeholder="Дата">
                     </div>
-                    <input type="text" id="cm-${u.id}" value="${u.comment||''}" placeholder="💬 Видно клиенту" style="margin-top:5px">
+                    <input type="text" id="cm-${u.id}" value="${u.comment||''}" placeholder="💬 Сообщение" style="margin-top:5px">
                     <input type="text" id="an-${u.id}" value="${u.adminNote||''}" class="admin-note-input" placeholder="📝 Заметка админа" style="margin-top:5px">
                 </div>
                 <div class="info-group">
@@ -267,43 +282,25 @@
         }
     }
 
-    // НОВАЯ ФУНКЦИЯ: ОТПРАВИТЬ ВСЕМ
     window.sendBroadcast = async () => {
         const msg = document.getElementById('massMsg').value;
         if (!msg.trim()) return alert("Введите текст сообщения!");
-        
-        if (confirm("Вы уверены, что хотите отправить это сообщение ВСЕМ клиентам? Это перезапишет их текущие сообщения.")) {
-            try {
-                const querySnapshot = await getDocs(collection(db, "users"));
-                const promises = [];
-                querySnapshot.forEach((userDoc) => {
-                    promises.push(updateDoc(doc(db, "users", userDoc.id), { comment: msg }));
-                });
-                await Promise.all(promises);
-                alert("Рассылка успешно завершена!");
-                document.getElementById('massMsg').value = "";
-            } catch (e) {
-                console.error(e);
-                alert("Ошибка при рассылке!");
-            }
+        if (confirm("Отправить сообщение ВСЕМ?")) {
+            const querySnapshot = await getDocs(collection(db, "users"));
+            querySnapshot.forEach(async (userDoc) => {
+                await updateDoc(doc(db, "users", userDoc.id), { comment: msg });
+            });
+            alert("Рассылка завершена!");
         }
     };
 
-    // НОВАЯ ФУНКЦИЯ: УДАЛИТЬ У ВСЕХ
     window.clearAllBroadcasts = async () => {
-        if (confirm("Вы уверены, что хотите УДАЛИТЬ сообщения у ВСЕХ клиентов?")) {
-            try {
-                const querySnapshot = await getDocs(collection(db, "users"));
-                const promises = [];
-                querySnapshot.forEach((userDoc) => {
-                    promises.push(updateDoc(doc(db, "users", userDoc.id), { comment: "" }));
-                });
-                await Promise.all(promises);
-                alert("Все сообщения удалены!");
-            } catch (e) {
-                console.error(e);
-                alert("Ошибка при удалении!");
-            }
+        if (confirm("Удалить сообщения у ВСЕХ?")) {
+            const querySnapshot = await getDocs(collection(db, "users"));
+            querySnapshot.forEach(async (userDoc) => {
+                await updateDoc(doc(db, "users", userDoc.id), { comment: "" });
+            });
+            alert("Очищено!");
         }
     };
 
@@ -319,8 +316,8 @@
                 comment: document.getElementById(`cm-${id}`).value,
                 adminNote: document.getElementById(`an-${id}`).value
             });
-            alert("Данные обновлены!");
-        } catch(e) { alert("Ошибка!"); }
+            alert("Обновлено!");
+        } catch(e) { alert("Ошибка доступа к БД!"); }
     };
 
     window.deleteUser = async (id, name) => { if(confirm(`Удалить ${name}?`)) await deleteDoc(doc(db,"users",id)); };
