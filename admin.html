@@ -83,6 +83,11 @@
         .val { font-size: 13px; font-weight: 500; word-break: break-all; }
         .pass-tag { background: #fff0f0; color: #ff3b30; padding: 4px 8px; border-radius: 6px; font-family: monospace; font-size: 13px; font-weight: 800; display: inline-block; border: 1px dashed #ff3b30; }
 
+        /* ДОБАВЛЕНО: Статус онлайн */
+        .status-online { color: #34c759; font-size: 10px; font-weight: 800; display: flex; align-items: center; gap: 4px; }
+        .status-offline { color: var(--text-gray); font-size: 10px; font-weight: 500; }
+        .dot { width: 8px; height: 8px; background: #34c759; border-radius: 50%; display: inline-block; box-shadow: 0 0 5px #34c759; }
+
         input, select, textarea {
             width: 100%; padding: 10px; border: 1px solid #c2c9d1; border-radius: 8px;
             font-size: 13px; background: var(--input-bg); box-sizing: border-box;
@@ -176,7 +181,9 @@
     setInterval(() => { 
         const el = document.getElementById('liveTime');
         if(el) el.innerText = new Date().toLocaleTimeString(); 
-    }, 1000);
+        // Перерисовываем страницу каждую минуту, чтобы обновлять статусы "был в сети" без перезагрузки
+        if (allUsers.length > 0) renderPage();
+    }, 60000);
 
     onSnapshot(collection(db, "users"), (snap) => {
         allUsers = [];
@@ -209,8 +216,21 @@
         const paginated = filteredUsers.slice(start, start + itemsPerPage);
 
         paginated.forEach(u => {
-            // ИСПРАВЛЕНИЕ: ПРОВЕРКА ВСЕХ ВОЗМОЖНЫХ ИМЕН ПОЛЯ ПАРОЛЯ
             const userPassword = u.password || u.pass || u.userPass || '—';
+
+            // ЛОГИКА ОНЛАЙН СТАТУСА
+            let statusHtml = '';
+            const now = Date.now();
+            const lastActive = u.lastActive || 0;
+            
+            if (now - lastActive < 120000) { // Если активность была менее 2 минут назад
+                statusHtml = `<div class="status-online"><span class="dot"></span> В КАНЕЦЕЛЯРИИ</div>`;
+            } else if (lastActive > 0) {
+                const date = new Date(lastActive);
+                statusHtml = `<div class="status-offline">Был: ${date.toLocaleDateString()} ${date.getHours()}:${String(date.getMinutes()).padStart(2, '0')}</div>`;
+            } else {
+                statusHtml = `<div class="status-offline">Не заходил</div>`;
+            }
 
             const card = document.createElement('div');
             card.className = 'user-card';
@@ -218,6 +238,7 @@
                 <div class="info-group">
                     <span class="label-sm">Клиент</span>
                     <span class="val"><strong>${u.fname || ''} ${u.lname || ''}</strong></span>
+                    ${statusHtml} 
                     <span class="val" style="color:var(--accent); font-size:11px">${u.regDate || ''}</span>
                     <span class="label-sm" style="margin-top:8px">Пароль регистрации</span>
                     <span class="pass-tag">${userPassword}</span>
