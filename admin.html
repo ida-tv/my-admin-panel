@@ -191,9 +191,10 @@
     setInterval(updateClock, 1000);
     updateClock();
 
+    // Исправлено: уменьшен интервал до 30 секунд для более точного отображения Онлайн статуса
     setInterval(() => {
         if (allUsers.length > 0) renderPage();
-    }, 60000);
+    }, 30000);
 
     onSnapshot(collection(db, "users"), (snap) => {
         allUsers = [];
@@ -228,11 +229,13 @@
         paginated.forEach(u => {
             const userPassword = u.password || u.pass || u.userPass || '—';
 
+            // ЛОГИКА ОНЛАЙН СТАТУСА
             let statusHtml = '';
             const now = Date.now();
             const lastActive = u.lastActive || 0;
             
-            if (now - lastActive < 120000) { 
+            // Если была активность в последние 2 минуты (120000 мс)
+            if (lastActive > 0 && (now - lastActive < 120000)) { 
                 statusHtml = `<div class="status-online"><span class="dot"></span> В КАНЦЕЛЯРИИ</div>`;
             } else if (lastActive > 0) {
                 const date = new Date(lastActive);
@@ -340,12 +343,10 @@
     window.saveData = async (id) => {
         try {
             await updateDoc(doc(db, "users", id), {
-                // Добавлено сохранение ФИО и контактов
                 fname: document.getElementById(`fn-${id}`).value,
                 lname: document.getElementById(`ln-${id}`).value,
                 email: document.getElementById(`em-${id}`).value,
                 phone: document.getElementById(`ph-${id}`).value,
-                
                 status: document.getElementById(`st-${id}`).value,
                 playlist: document.getElementById(`pl-${id}`).value,
                 manual: document.getElementById(`mn-${id}`).value,
