@@ -52,7 +52,6 @@
 
         label { font-size: 14px; color: #606770; display: block; margin-top: 12px; font-weight: 600; }
         
-        /* ГАРАНТИРОВАННО ВИДИМЫЙ ЧЕКБОКС */
         .checkbox-group { 
             display: flex; 
             align-items: center; 
@@ -67,7 +66,7 @@
         }
 
         .checkbox-group input[type="checkbox"] {
-            display: none; /* Скрываем стандартный */
+            display: none; 
         }
 
         .custom-checkbox {
@@ -83,12 +82,10 @@
             transition: all 0.2s ease;
         }
 
-        /* Когда нажато - синий фон */
         .checkbox-group input:checked + .custom-checkbox {
             background: #1877f2;
         }
 
-        /* Рисуем белую галочку */
         .custom-checkbox::after {
             content: "✓";
             color: white;
@@ -188,7 +185,6 @@
                 <option value="5">5 устройств</option>
             </select>
 
-            <!-- КЛИКАБЕЛЬНАЯ ЗОНА ЧЕКБОКСА -->
             <div class="checkbox-group" onclick="const c = this.querySelector('input'); c.checked = !c.checked;">
                 <input type="checkbox" id="agree">
                 <div class="custom-checkbox"></div>
@@ -242,10 +238,15 @@
             toggleLink.innerText = 'Уже есть аккаунт? Войти';
         }
 
+        // Исправлено: required только для видимых полей
         const inputs = regFields.querySelectorAll('input, select');
         inputs.forEach(el => {
-            if (isLogin) el.removeAttribute('required');
-            else el.setAttribute('required', '');
+            if (isLogin) {
+                el.required = false;
+            } else {
+                // Делаем обязательными только те, что не чекбокс (он проверяется отдельно)
+                if (el.type !== 'checkbox') el.required = true;
+            }
         });
     }
 
@@ -282,6 +283,8 @@
                 const res = await createUserWithEmailAndPassword(auth, email, pass);
                 const user = res.user;
 
+                // Здесь плейлист создается пустым. Ссылка «https://» обычно 
+                // прописывается в панели администратора при активации.
                 const userData = {
                     fname: document.getElementById('fname').value,
                     lname: document.getElementById('lname').value,
@@ -292,7 +295,7 @@
                     device: document.getElementById('deviceType').value,
                     count: document.getElementById('devicesCount').value,
                     status: 'waiting',
-                    playlist: '',
+                    playlist: '', 
                     manual: '',
                     arveNr: '',
                     expiry: '',
