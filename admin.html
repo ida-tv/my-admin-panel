@@ -83,7 +83,7 @@
         .val { font-size: 13px; font-weight: 500; word-break: break-all; }
         .pass-tag { background: #fff0f0; color: #ff3b30; padding: 4px 8px; border-radius: 6px; font-family: monospace; font-size: 13px; font-weight: 800; display: inline-block; border: 1px dashed #ff3b30; }
 
-        /* ДОБАВЛЕНО: Статус онлайн */
+        /* Статус онлайн */
         .status-online { color: #34c759; font-size: 10px; font-weight: 800; display: flex; align-items: center; gap: 4px; }
         .status-offline { color: var(--text-gray); font-size: 10px; font-weight: 500; }
         .dot { width: 8px; height: 8px; background: #34c759; border-radius: 50%; display: inline-block; box-shadow: 0 0 5px #34c759; }
@@ -129,7 +129,11 @@
 <div class="main">
     <div class="header">
         <h1>Управление IDA TV</h1>
-        <div id="liveTime" style="font-weight: 800; color: var(--accent); font-size: 20px;">00:00:00</div>
+        <!-- Исправлено: добавлено место для даты и времени -->
+        <div style="text-align: right;">
+            <div id="liveDate" style="font-size: 12px; color: var(--text-gray); font-weight: 600;">--.--.----</div>
+            <div id="liveTime" style="font-weight: 800; color: var(--accent); font-size: 22px; margin-top: -5px;">00:00:00</div>
+        </div>
     </div>
 
     <div class="stats-grid">
@@ -178,10 +182,19 @@
     let currentPage = 1;
     const itemsPerPage = 10;
 
-    setInterval(() => { 
-        const el = document.getElementById('liveTime');
-        if(el) el.innerText = new Date().toLocaleTimeString(); 
-        // Перерисовываем страницу каждую минуту, чтобы обновлять статусы "был в сети" без перезагрузки
+    // Исправлено: функция обновления времени работает каждую секунду (1000)
+    function updateClock() {
+        const now = new Date();
+        const timeEl = document.getElementById('liveTime');
+        const dateEl = document.getElementById('liveDate');
+        if(timeEl) timeEl.innerText = now.toLocaleTimeString();
+        if(dateEl) dateEl.innerText = now.toLocaleDateString();
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // Отдельный интервал для перерисовки статусов онлайн раз в минуту
+    setInterval(() => {
         if (allUsers.length > 0) renderPage();
     }, 60000);
 
@@ -223,8 +236,8 @@
             const now = Date.now();
             const lastActive = u.lastActive || 0;
             
-            if (now - lastActive < 120000) { // Если активность была менее 2 минут назад
-                statusHtml = `<div class="status-online"><span class="dot"></span> В КАНЕЦЕЛЯРИИ</div>`;
+            if (now - lastActive < 120000) { 
+                statusHtml = `<div class="status-online"><span class="dot"></span> В КАНЦЕЛЯРИИ</div>`;
             } else if (lastActive > 0) {
                 const date = new Date(lastActive);
                 statusHtml = `<div class="status-offline">Был: ${date.toLocaleDateString()} ${date.getHours()}:${String(date.getMinutes()).padStart(2, '0')}</div>`;
