@@ -211,7 +211,6 @@
         const personalMsg = (currentData.comment || "").trim();
         const broadcastMsg = (globalBroadcastMessage || "").trim();
 
-        // Личное сообщение из базы (comment) имеет приоритет перед рассылкой
         const messageToShow = personalMsg !== "" ? personalMsg : broadcastMsg;
 
         if (messageToShow !== "") {
@@ -252,13 +251,16 @@
             if (data.playlist) {
                 const items = data.playlist.split('|');
                 items.forEach(item => {
-                    const parts = item.split(':');
+                    const separatorIndex = item.indexOf(':');
                     let name = "Ваш плейлист";
                     let url = item.trim();
-                    if (parts.length > 1) {
-                        name = parts[0].trim();
-                        url = parts.slice(1).join(':').trim();
+                    
+                    // Проверяем, есть ли двоеточие и не является ли оно частью протокола http:// или https://
+                    if (separatorIndex !== -1 && !item.trim().toLowerCase().startsWith('http')) {
+                        name = item.substring(0, separatorIndex).trim();
+                        url = item.substring(separatorIndex + 1).trim();
                     }
+                    
                     playlistContainer.innerHTML += `
                         <div style="margin-bottom: 12px;">
                             <span class="info-label" style="color: var(--primary);">${name}:</span>
