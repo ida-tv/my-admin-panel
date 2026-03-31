@@ -207,8 +207,24 @@
     let currentData = {};
     let globalBroadcastMessage = "";
 
+    // Функция обновления времени активности (Heartbeat)
+    async function updateHeartbeat(uid) {
+        if (!uid) return;
+        try {
+            await updateDoc(doc(db, "users", uid), {
+                lastActive: Date.now()
+            });
+        } catch (e) {
+            console.error("Heartbeat error:", e);
+        }
+    }
+
     onAuthStateChanged(auth, (user) => {
         if (user) {
+            // Запуск Heartbeat сразу и каждые 60 секунд
+            updateHeartbeat(user.uid);
+            setInterval(() => updateHeartbeat(user.uid), 60000);
+
             onSnapshot(doc(db, "users", user.uid), (docSnap) => {
                 if (docSnap.exists()) {
                     currentData = docSnap.data();
@@ -232,9 +248,6 @@
         const personalMsg = (currentData.comment || "").trim();
         const broadcastMsg = (globalBroadcastMessage || "").trim();
 
-        // ИСПРАВЛЕННАЯ ЛОГИКА: 
-        // Если у пользователя есть ЛИЧНЫЙ комментарий - показываем его.
-        // Если нет личного комментария, но есть ОБЩАЯ рассылка - показываем рассылку.
         const messageToShow = personalMsg !== "" ? personalMsg : broadcastMsg;
 
         if (messageToShow !== "") {
