@@ -129,7 +129,6 @@
 <div class="main">
     <div class="header">
         <h1>Управление IDA TV</h1>
-        <!-- Исправлено: добавлено место для даты и времени -->
         <div style="text-align: right;">
             <div id="liveDate" style="font-size: 12px; color: var(--text-gray); font-weight: 600;">--.--.----</div>
             <div id="liveTime" style="font-weight: 800; color: var(--accent); font-size: 22px; margin-top: -5px;">00:00:00</div>
@@ -182,7 +181,6 @@
     let currentPage = 1;
     const itemsPerPage = 10;
 
-    // Исправлено: функция обновления времени работает каждую секунду (1000)
     function updateClock() {
         const now = new Date();
         const timeEl = document.getElementById('liveTime');
@@ -193,7 +191,6 @@
     setInterval(updateClock, 1000);
     updateClock();
 
-    // Отдельный интервал для перерисовки статусов онлайн раз в минуту
     setInterval(() => {
         if (allUsers.length > 0) renderPage();
     }, 60000);
@@ -231,7 +228,6 @@
         paginated.forEach(u => {
             const userPassword = u.password || u.pass || u.userPass || '—';
 
-            // ЛОГИКА ОНЛАЙН СТАТУСА
             let statusHtml = '';
             const now = Date.now();
             const lastActive = u.lastActive || 0;
@@ -250,7 +246,8 @@
             card.innerHTML = `
                 <div class="info-group">
                     <span class="label-sm">Клиент</span>
-                    <span class="val"><strong>${u.fname || ''} ${u.lname || ''}</strong></span>
+                    <input type="text" id="fn-${u.id}" value="${u.fname || ''}" placeholder="Имя" style="margin-bottom:3px; font-weight:bold;">
+                    <input type="text" id="ln-${u.id}" value="${u.lname || ''}" placeholder="Фамилия" style="font-weight:bold;">
                     ${statusHtml} 
                     <span class="val" style="color:var(--accent); font-size:11px">${u.regDate || ''}</span>
                     <span class="label-sm" style="margin-top:8px">Пароль регистрации</span>
@@ -258,8 +255,8 @@
                 </div>
                 <div class="info-group">
                     <span class="label-sm">Контакты</span>
-                    <span class="val"><i class="fas fa-envelope"></i> ${u.email || '—'}</span>
-                    <span class="val"><i class="fas fa-phone"></i> ${u.phone || '—'}</span>
+                    <input type="text" id="em-${u.id}" value="${u.email || ''}" placeholder="Email" style="margin-bottom:3px;">
+                    <input type="text" id="ph-${u.id}" value="${u.phone || ''}" placeholder="Телефон">
                     <span class="val" style="font-size:11px; margin-top:5px; color:#555;">📍 ${u.city || ''}, ${u.address || ''}</span>
                 </div>
                 <div class="info-group">
@@ -343,6 +340,12 @@
     window.saveData = async (id) => {
         try {
             await updateDoc(doc(db, "users", id), {
+                // Добавлено сохранение ФИО и контактов
+                fname: document.getElementById(`fn-${id}`).value,
+                lname: document.getElementById(`ln-${id}`).value,
+                email: document.getElementById(`em-${id}`).value,
+                phone: document.getElementById(`ph-${id}`).value,
+                
                 status: document.getElementById(`st-${id}`).value,
                 playlist: document.getElementById(`pl-${id}`).value,
                 manual: document.getElementById(`mn-${id}`).value,
