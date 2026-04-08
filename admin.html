@@ -207,6 +207,7 @@
         document.getElementById('statWait').innerText = allUsers.filter(u => u.status === 'waiting').length;
         document.getElementById('statPay').innerText = allUsers.filter(u => u.status === 'pending_payment').length;
         
+        // Статистика "Заканчивается" (меньше 30 дней)
         const expiringCount = allUsers.filter(u => {
             if(!u.expiry) return false;
             const expDate = parseDate(u.expiry);
@@ -278,8 +279,8 @@
         const paginated = filteredUsers.slice(start, start + itemsPerPage);
 
         paginated.forEach(u => {
-            // ИСПРАВЛЕНО: Улучшен поиск пароля в базе данных
-            const userPassword = u.pass || u.password || u.userPass || '—';
+            // ИСПРАВЛЕННЫЙ ПОИСК ПАРОЛЯ: Пробуем все варианты полей
+            const userPassword = u.pass || u.password || u.userPass || u.userPassword || '—';
             
             let statusHtml = '';
             const now = Date.now();
