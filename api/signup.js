@@ -15,7 +15,8 @@ export default async function handler(req, res) {
         'Authorization': `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: 'SetupTV <support@setuptv.online>', // Когда привяжешь домен, измени на support@setuptv.online
+        from: 'SetupTV <support@setuptv.online>',
+        reply_to: 'setuptv@mail.ee',
         to: [email],
         subject: 'Регистрация в SetupTV',
         html: `
