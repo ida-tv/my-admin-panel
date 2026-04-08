@@ -29,7 +29,6 @@
             margin: 0; display: flex; color: var(--text-dark);
         }
 
-        /* SIDEBAR / NAVIGATION */
         .sidebar {
             width: 260px; background: var(--sidebar-bg); height: 100vh;
             position: fixed; border-right: 1px solid var(--border);
@@ -44,15 +43,15 @@
         }
         .nav-link.active { background: rgba(0, 122, 255, 0.15); color: var(--accent); font-weight: 700; }
 
-        /* MAIN CONTENT AREA */
         .main { margin-left: 260px; width: 100%; padding: 40px; box-sizing: border-box; transition: 0.3s; }
 
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
         
-        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 30px; }
-        .stat-card { background: white; padding: 20px; border-radius: 15px; border: 1px solid var(--border); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
-        .stat-card .label { font-size: 11px; color: var(--text-gray); text-transform: uppercase; font-weight: 700; }
-        .stat-card .value { font-size: 26px; font-weight: 800; margin-top: 5px; color: var(--accent); }
+        .stats-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 15px; margin-bottom: 30px; }
+        .stat-card { background: white; padding: 15px; border-radius: 15px; border: 1px solid var(--border); box-shadow: 0 4px 12px rgba(0,0,0,0.08); cursor: pointer; transition: 0.2s; }
+        .stat-card:hover { transform: translateY(-3px); box-shadow: 0 6px 15px rgba(0,0,0,0.12); }
+        .stat-card .label { font-size: 10px; color: var(--text-gray); text-transform: uppercase; font-weight: 700; }
+        .stat-card .value { font-size: 22px; font-weight: 800; margin-top: 5px; color: var(--accent); }
 
         .broadcast-card {
             background: #ffffff; border: 2px solid var(--accent);
@@ -70,7 +69,6 @@
         }
         .search-box i { position: absolute; left: 18px; top: 16px; color: var(--text-gray); }
 
-        /* USER CARDS */
         .user-card {
             background: white; border-radius: 18px; padding: 22px;
             margin-bottom: 18px; display: grid; 
@@ -83,7 +81,6 @@
         .val { font-size: 13px; font-weight: 500; word-break: break-all; }
         .pass-tag { background: #fff0f0; color: #ff3b30; padding: 4px 8px; border-radius: 6px; font-family: monospace; font-size: 13px; font-weight: 800; display: inline-block; border: 1px dashed #ff3b30; }
 
-        /* Статус онлайн */
         .status-online { color: #34c759; font-size: 10px; font-weight: 800; display: flex; align-items: center; gap: 4px; }
         .status-offline { color: var(--text-gray); font-size: 10px; font-weight: 500; }
         .dot { width: 8px; height: 8px; background: #34c759; border-radius: 50%; display: inline-block; box-shadow: 0 0 5px #34c759; }
@@ -99,12 +96,12 @@
         .btn { border: none; padding: 12px; border-radius: 10px; cursor: pointer; font-weight: 700; font-size: 13px; transition: 0.2s; }
         .btn-save { background: var(--accent); color: white; width: 100%; border-bottom: 3px solid #0056b3; }
         .btn-del { background: #feebeb; color: #ff3b30; width: 100%; margin-top: 8px; border: 1px solid #ff3b3022; }
+        .btn-remind { background: #ff9500; color: white; width: 100%; margin-top: 5px; font-size: 11px; padding: 8px; }
         
-        .pagination { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; margin: 30px 0; }
+        .pagination { display: flex; justify: center; flex-wrap: wrap; gap: 8px; margin: 30px 0; }
         .page-btn { padding: 8px 14px; background: white; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; }
         .page-btn.active { background: var(--accent); color: white; }
 
-        /* MOBILE STYLES */
         @media (max-width: 1100px) {
             body { flex-direction: column; }
             .sidebar { width: 100%; height: auto; position: relative; padding: 15px; border-right: none; border-bottom: 1px solid var(--border); }
@@ -121,7 +118,7 @@
 
 <div class="sidebar">
     <div class="logo">IDA <span>TV</span></div>
-    <a href="#" class="nav-link active"><i class="fas fa-users"></i> База клиентов</a>
+    <a href="#" class="nav-link active" onclick="resetFilters()"><i class="fas fa-users"></i> База клиентов</a>
     <a href="https://ida-tv-setup-tv-admin.vercel.app/" target="_blank" class="nav-link"><i class="fas fa-link"></i> Панель 2</a>
     <a href="#" class="nav-link" onclick="adminLogout()"><i class="fas fa-power-off"></i> Выйти</a>
 </div>
@@ -136,10 +133,11 @@
     </div>
 
     <div class="stats-grid">
-        <div class="stat-card"><span class="label">Всего</span><div class="value" id="statTotal">0</div></div>
-        <div class="stat-card"><span class="label">Активные</span><div class="value" id="statActive" style="color:#34c759">0</div></div>
-        <div class="stat-card"><span class="label">Ожидают</span><div class="value" id="statWait" style="color:#ff9500">0</div></div>
-        <div class="stat-card"><span class="label">Оплата</span><div class="value" id="statPay" style="color:#5856d6">0</div></div>
+        <div class="stat-card" onclick="resetFilters()"><span class="label">Всего</span><div class="value" id="statTotal">0</div></div>
+        <div class="stat-card" onclick="filterByStatus('approved')"><span class="label">Активные</span><div class="value" id="statActive" style="color:#34c759">0</div></div>
+        <div class="stat-card" onclick="filterByStatus('waiting')"><span class="label">Ожидают</span><div class="value" id="statWait" style="color:#ff9500">0</div></div>
+        <div class="stat-card" onclick="filterByStatus('pending_payment')"><span class="label">Оплата</span><div class="value" id="statPay" style="color:#5856d6">0</div></div>
+        <div class="stat-card" onclick="filterExpiring()"><span class="label">Заканчивается</span><div class="value" id="statExp" style="color:#ff3b30">0</div></div>
     </div>
 
     <div class="broadcast-card">
@@ -191,7 +189,6 @@
     setInterval(updateClock, 1000);
     updateClock();
 
-    // Исправлено: уменьшен интервал до 30 секунд для более точного отображения Онлайн статуса
     setInterval(() => {
         if (allUsers.length > 0) renderPage();
     }, 30000);
@@ -209,7 +206,47 @@
         document.getElementById('statActive').innerText = allUsers.filter(u => u.status === 'approved').length;
         document.getElementById('statWait').innerText = allUsers.filter(u => u.status === 'waiting').length;
         document.getElementById('statPay').innerText = allUsers.filter(u => u.status === 'pending_payment').length;
+        
+        // Статистика "Заканчивается" (меньше 30 дней)
+        const expiringCount = allUsers.filter(u => {
+            if(!u.expiry) return false;
+            const expDate = parseDate(u.expiry);
+            if(!expDate) return false;
+            const diffDays = (expDate - new Date()) / (1000 * 60 * 60 * 24);
+            return diffDays > 0 && diffDays <= 30;
+        }).length;
+        document.getElementById('statExp').innerText = expiringCount;
     }
+
+    function parseDate(str) {
+        if(!str) return null;
+        const d = str.split('.');
+        if(d.length !== 3) return null;
+        return new Date(d[2], d[1] - 1, d[0]);
+    }
+
+    window.resetFilters = () => {
+        document.getElementById('searchInput').value = '';
+        handleSearch();
+    };
+
+    window.filterByStatus = (status) => {
+        filteredUsers = allUsers.filter(u => u.status === status);
+        currentPage = 1;
+        renderPage();
+    };
+
+    window.filterExpiring = () => {
+        filteredUsers = allUsers.filter(u => {
+            if(!u.expiry) return false;
+            const expDate = parseDate(u.expiry);
+            if(!expDate) return false;
+            const diffDays = (expDate - new Date()) / (1000 * 60 * 60 * 24);
+            return diffDays > 0 && diffDays <= 30;
+        });
+        currentPage = 1;
+        renderPage();
+    };
 
     window.handleSearch = () => {
         const q = document.getElementById('searchInput').value.toLowerCase();
@@ -220,6 +257,21 @@
         renderPage();
     };
 
+    window.sendReminder = async (email, name, service) => {
+        if(!email) return alert("У пользователя не указан Email");
+        if(!confirm(`Отправить годовое напоминание пользователю ${name}?`)) return;
+
+        try {
+            const res = await fetch('/api/reminder', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, name, service })
+            });
+            if(res.ok) alert("Напоминание отправлено!");
+            else alert("Ошибка отправки через API");
+        } catch(e) { alert("Ошибка соединения с сервером"); }
+    };
+
     window.renderPage = () => {
         const container = document.getElementById('usersContainer');
         container.innerHTML = "";
@@ -228,13 +280,10 @@
 
         paginated.forEach(u => {
             const userPassword = u.password || u.pass || u.userPass || '—';
-
-            // ЛОГИКА ОНЛАЙН СТАТУСА
             let statusHtml = '';
             const now = Date.now();
             const lastActive = u.lastActive || 0;
             
-            // Если была активность в последние 2 минуты (120000 мс)
             if (lastActive > 0 && (now - lastActive < 120000)) { 
                 statusHtml = `<div class="status-online"><span class="dot"></span> В КАНЦЕЛЯРИИ</div>`;
             } else if (lastActive > 0) {
@@ -281,13 +330,14 @@
                     <input type="text" id="ar-${u.id}" value="${u.arveNr||''}" placeholder="№ счета">
                     <div class="billing-row">
                         <input type="text" id="pr-${u.id}" value="${u.price||''}" placeholder="€">
-                        <input type="text" id="ex-${u.id}" value="${u.expiry||''}" placeholder="Дата">
+                        <input type="text" id="ex-${u.id}" value="${u.expiry||''}" placeholder="ДД.ММ.ГГГГ">
                     </div>
                     <input type="text" id="cm-${u.id}" value="${u.comment||''}" placeholder="💬 Сообщение клиенту" style="margin-top:5px">
                     <input type="text" id="an-${u.id}" value="${u.adminNote||''}" class="admin-note-input" placeholder="📝 Заметка админа" style="margin-top:5px">
                 </div>
                 <div class="info-group">
                     <button class="btn btn-save" onclick="saveData('${u.id}')">Сохранить</button>
+                    <button class="btn btn-remind" onclick="sendReminder('${u.email}', '${u.fname}', '${u.service}')">🔔 Напомнить за Год</button>
                     <button class="btn btn-del" onclick="deleteUser('${u.id}','${u.fname}')">Удалить</button>
                 </div>
             `;
