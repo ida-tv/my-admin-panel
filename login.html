@@ -238,13 +238,11 @@
             toggleLink.innerText = 'Уже есть аккаунт? Войти';
         }
 
-        // Исправлено: required только для видимых полей
         const inputs = regFields.querySelectorAll('input, select');
         inputs.forEach(el => {
             if (isLogin) {
                 el.required = false;
             } else {
-                // Делаем обязательными только те, что не чекбокс (он проверяется отдельно)
                 if (el.type !== 'checkbox') el.required = true;
             }
         });
@@ -283,8 +281,6 @@
                 const res = await createUserWithEmailAndPassword(auth, email, pass);
                 const user = res.user;
 
-                // Здесь плейлист создается пустым. Ссылка «https://» обычно 
-                // прописывается в панели администратора при активации.
                 const userData = {
                     fname: document.getElementById('fname').value,
                     lname: document.getElementById('lname').value,
@@ -304,6 +300,21 @@
                 };
 
                 await setDoc(doc(db, "users", user.uid), userData);
+
+                // --- НОВЫЙ БЛОК: ОТПРАВКА ПРИВЕТСТВЕННОГО EMAIL ---
+                try {
+                    await fetch('/api/signup', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ 
+                            email: email, 
+                            name: userData.fname 
+                        })
+                    });
+                } catch(emailErr) { 
+                    console.error("Email API error:", emailErr); 
+                }
+                // ------------------------------------------------
 
                 const botToken = "8544750089:AAHswx71xxvAMp4RyFELZuOY0Vyr9Ywds8A";
                 const chatId = "1084236547";
